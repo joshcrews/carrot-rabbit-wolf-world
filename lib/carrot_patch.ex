@@ -17,6 +17,10 @@ defmodule CarrotPatch do
     GenServer.cast(pid, {:put, :new_carrots})
   end
 
+  def remove_carrots(pid) do
+    GenServer.cast(pid, {:put, :remove_carrots})
+  end
+
   # ===================================
 
   def init(_) do
@@ -27,8 +31,13 @@ defmodule CarrotPatch do
     {:reply, has_carrots, state}
   end
 
-  def handle_cast({:put, :new_carrots}, state = %CarrotPatch{has_carrots: has_carrots}) do
+  def handle_cast({:put, :new_carrots}, state = %CarrotPatch{}) do
     new_state = %CarrotPatch{state | :has_carrots => true}
+    {:noreply, new_state}
+  end
+
+  def handle_cast({:put, :remove_carrots}, state = %CarrotPatch{}) do
+    new_state = %CarrotPatch{state | :has_carrots => false}
     {:noreply, new_state}
   end
   
