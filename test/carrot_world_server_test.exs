@@ -1,28 +1,30 @@
-defmodule CarrotWorld.Sandbox do
-  
-  def build_initial_world(_) do
-    [
-      [0,0,0],
-      [0,1,0],
-      [0,0,0],
-    ]
-  end
-  
-end
-
-defmodule CarrotWorldTest do
+defmodule CarrotWorldServerTest do
   use ExUnit.Case
 
   test "renders empty world" do
-    carrot_world_sandbox = CarrotWorld.Sandbox
 
-    CarrotWorldServer.start(%{board_size: 1, world_builder: carrot_world_sandbox})
+    CarrotWorldServer.start(%{board_size: 3})
 
     correct_map = [
-      [0,0,0],
-      [0,1,0],
-      [0,0,0],
+      ["0","0","0"],
+      ["0","0","0"],
+      ["0","0","0"],
     ]
+
+    assert CarrotWorldServer.render_map == correct_map
+  end
+
+  test "receives update from carrot_patch" do
+    CarrotWorldServer.start(%{board_size: 3})
+
+    correct_map = [
+      ["1","0","0"],
+      ["0","0","0"],
+      ["0","1","0"],
+    ]
+
+    CarrotWorldServer.put_patch(%{x: 0, y: 0, graphics: "1"})
+    CarrotWorldServer.put_patch(%{x: 2, y: 1, graphics: "1"})
 
     assert CarrotWorldServer.render_map == correct_map
   end

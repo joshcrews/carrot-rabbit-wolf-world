@@ -3,29 +3,39 @@ defmodule CarrotWorldServer do
 
   @world_tick 100
 
-  def start(%{board_size: board_size, world_builder: world_builder}) do
-    GenServer.start_link(CarrotWorldServer, {:board_size, board_size, world_builder: world_builder}, name: :carrot_world_server)
+  def start(%{board_size: board_size}) do
+    GenServer.start_link(CarrotWorldServer, {:board_size, board_size}, name: :carrot_world_server)
     :timer.send_interval(@world_tick, :carrot_world_server, :tick)
     {:ok, :carrot_world_server}
   end
 
   def start_in_production do
-    start(%{board_size: 5, world_builder: CarrotWorld})
+    start(%{board_size: 5})
   end
 
   def render_map do
     GenServer.call(:carrot_world_server, {:get, :map})
   end
+
+  def put_patch(%{x: x, y: y, graphics: graphics}) do
+    GenServer.cast(:carrot_world_server, {:put_patch, %{x: x, y: y, graphics: graphics}})
+  end
+  
   
   # ===============
 
-  def init({:board_size, board_size, world_builder: world_builder}) do
-    state = world_builder.build_initial_world({:board_size, board_size})
+  def init({:board_size, board_size}) do
+    state = CarrotWorld.build_initial_world({:board_size, board_size})
     {:ok, state}
   end
 
   def handle_call({:get, :map}, _, state) do
     {:reply, state, state}
+  end
+
+  def handle_cast({:put_patch, %{x: x, y: y, graphics: graphics}}, state) do
+    new_state = CarrotWorld.replace_at(state, %{x: x, y: y}, graphics)
+    {:noreply, new_state}
   end
 
   def handle_info(:tick, state) do
