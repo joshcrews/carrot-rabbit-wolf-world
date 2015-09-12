@@ -5,13 +5,42 @@ defmodule CarrotWorld do
 
   def build_initial_world({:board_size, board_size}) do
     Enum.to_list(1..board_size)
-    |> Enum.map(fn(_) -> 
-      Enum.to_list(1..board_size) |> Enum.map(fn(_) -> 0 end)
+    |> Enum.map(fn(x) -> 
+      Enum.to_list(1..board_size) |> Enum.map(fn(y) -> 
+        {:ok, carrot_patch} = CarrotPatch.start(%{x: x, y: y}) 
+        CarrotPatch.to_screen(carrot_patch)
+      end)
     end)
-
-    single_carrot_world
-    |> add_rings(board_size)
   end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   def single_carrot_world do
     [
