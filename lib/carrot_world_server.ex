@@ -29,7 +29,11 @@ defmodule CarrotWorldServer do
   end
 
   def handle_info(:tick, state) do
-    IO.inspect state
+    state
+    |> Enum.each(fn(row) -> IO.puts(Enum.join(row, " ")) end)
+
+    IO.puts ""
+    IO.puts ""
     {:noreply, state}
   end
   
