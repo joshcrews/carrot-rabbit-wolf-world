@@ -1,8 +1,6 @@
 defmodule CarrotPatchTest do
   use ExUnit.Case
   
-  @tag :focus
-
   setup do
     {:ok, carrot_patch} = CarrotPatch.start(%{x: 0, y: 0})
     {:ok, [carrot_patch: carrot_patch]}
@@ -34,6 +32,7 @@ defmodule CarrotPatchTest do
     assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
   end
 
+  @tag :focus
   test "render graphics", context do
     assert CarrotPatch.to_screen(context[:carrot_patch]) == "0"
 

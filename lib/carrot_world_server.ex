@@ -10,8 +10,13 @@ defmodule CarrotWorldServer do
   end
 
   def start_in_production do
-    start(%{board_size: 5})
+    start(%{board_size: 10})
   end
+
+  def sip do
+    start_in_production
+  end
+  
 
   def render_map do
     GenServer.call(:carrot_world_server, {:get, :map})

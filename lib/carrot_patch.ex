@@ -26,12 +26,17 @@ defmodule CarrotPatch do
     GenServer.cast(pid, {:put, :remove_carrots})
   end
 
-  def to_screen(pid) do
-    has_carrots = GenServer.call(pid, {:get, :has_carrots})
+  def to_screen({:has_carrots, has_carrots}) do
     cond do
       has_carrots -> "1"
       :else -> "0"
     end
+    Enum.shuffle(["0", "1"]) |> List.first
+  end
+
+  def to_screen(pid) do
+    has_carrots = GenServer.call(pid, {:get, :has_carrots})
+    to_screen({:has_carrots, has_carrots})
   end
 
   def coordinates(pid) do
@@ -43,6 +48,7 @@ defmodule CarrotPatch do
   # =============== Server Callbacks
 
   def init(%{x: x, y: y}) do
+    :random.seed(:erlang.now)
     {:ok, %CarrotPatch{has_carrots: false, x: x, y: y}}
   end
 
@@ -73,15 +79,24 @@ defmodule CarrotPatch do
     {:noreply, new_state}
   end
 
+  def terminate(reason, state) do
+    IO.puts " ----------- "
+    IO.inspect self
+    IO.inspect reason
+    :ok
+  end
+  
+
   # =============== Private functions
 
   defp tick_world(state) do
-    
+    state
   end
 
-  defp update_world(state = %CarrotPatch{x: x, y: y}) do
-    # graphics: CarrotPatch.to_screen(pid)
-    # CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
+  defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots}) do
+    graphics = CarrotPatch.to_screen({:has_carrots, has_carrots})
+    CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
+    state
   end
   
 end
