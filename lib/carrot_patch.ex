@@ -1,12 +1,14 @@
 
 defmodule CarrotPatch do
 
-  defstruct [:has_carrots, :x, :y, :carrot_growth_points]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age]
 
   @emoji_number 127823
   @grow_tick_interval 500
   @update_world_interval 1000
+  @carrot_growth_points_required 100
   @carrot_growth_point_speed 10
+  @carrot_life_span 35
 
   def start(%{x: x, y: y}) do
     {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y})
@@ -49,7 +51,8 @@ defmodule CarrotPatch do
 
   def init(%{x: x, y: y}) do
     :random.seed(:erlang.now)
-    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: 0}}
+    carrot_growth_points = :random.uniform(@carrot_growth_points_required)
+    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0}}
   end
 
   def handle_info(:grow_tick, state) do
@@ -93,6 +96,8 @@ defmodule CarrotPatch do
     state
     |> add_carrot_growth_points
     |> recognize_new_carrots
+    |> age_existing_carrots
+    |> old_carrots_die
   end
 
   defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots}) do
@@ -101,21 +106,55 @@ defmodule CarrotPatch do
     state
   end
 
-  defp add_carrot_growth_points(state = %CarrotPatch{carrot_growth_points: carrot_growth_points}) do
+
+  defp add_carrot_growth_points(state = %CarrotPatch{has_carrots: true}) do
+    state
+  end
+
+  defp add_carrot_growth_points(state = %CarrotPatch{carrot_growth_points: carrot_growth_points, has_carrots: false}) do
     additional_carrot_growth_points = :random.uniform(@carrot_growth_point_speed)
     new_carrot_growth_points = additional_carrot_growth_points + carrot_growth_points
     %CarrotPatch{state | carrot_growth_points: new_carrot_growth_points}
   end
 
-  defp recognize_new_carrots(state = %CarrotPatch{carrot_growth_points: carrot_growth_points}) do
+  
+
+  defp age_existing_carrots(state = %CarrotPatch{has_carrots: false}) do
+    state
+  end
+
+  defp age_existing_carrots(state = %CarrotPatch{has_carrots: true, carrot_age: carrot_age}) do
+    %CarrotPatch{state | carrot_age: carrot_age + 1}
+  end
+
+
+
+  defp recognize_new_carrots(state = %CarrotPatch{has_carrots: true}) do
+    state
+  end
+
+  defp recognize_new_carrots(state = %CarrotPatch{has_carrots: false, carrot_growth_points: carrot_growth_points}) do
     cond do
       carrot_growth_points > 100 ->
-        %CarrotPatch{state | has_carrots: true, carrot_growth_points: 0}
+        %CarrotPatch{state | has_carrots: true, carrot_growth_points: 0, carrot_age: 0}
       :else ->
         state
-    end
-    
+    end    
   end
-  
-  
+
+
+
+  defp old_carrots_die(state = %CarrotPatch{has_carrots: false}) do
+    state
+  end
+
+  defp old_carrots_die(state = %CarrotPatch{carrot_age: carrot_age, has_carrots: true}) do
+    cond do
+      carrot_age > @carrot_life_span ->
+        %CarrotPatch{state | has_carrots: false, carrot_growth_points: 0, carrot_age: 0}
+      :else ->
+        state
+    end    
+  end
+
 end

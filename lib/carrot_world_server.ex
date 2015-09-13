@@ -10,7 +10,7 @@ defmodule CarrotWorldServer do
   end
 
   def start_in_production do
-    start(%{board_size: 10})
+    start(%{board_size: 30})
   end
 
   def sip do
