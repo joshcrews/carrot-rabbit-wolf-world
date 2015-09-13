@@ -6,38 +6,16 @@ defmodule CarrotPatchTest do
     {:ok, [carrot_patch: carrot_patch]}
   end
 
-  test "grows carrots", context do
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
-
-    CarrotPatch.grow_carrots(context[:carrot_patch])
-
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
-  end
-
-
-  test "removes carrots", context do
-    CarrotPatch.grow_carrots(context[:carrot_patch])
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
-
-    CarrotPatch.remove_carrots(context[:carrot_patch])
-
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
-  end
-
-  test "handles tick", context do
-    CarrotPatch.grow_carrots(context[:carrot_patch])
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
-
-    CarrotPatch.remove_carrots(context[:carrot_patch])
-
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
-  end
-
   test "render graphics", context do
-    assert CarrotPatch.to_screen(context[:carrot_patch]) == "0"
+    empty = %{has_carrots: false, occupant: nil}
+    assert CarrotPatch.to_screen(empty) == "0"
 
-    CarrotPatch.grow_carrots(context[:carrot_patch])
-    assert CarrotPatch.to_screen(context[:carrot_patch]) == "1"
+    carrots = %{has_carrots: true, occupant: nil}
+    assert CarrotPatch.to_screen(carrots) == "1"
+
+    {:ok, rabbit_pid} = CarrotPatch.spawn_rabbit(context[:carrot_patch])
+    rabbits = %{has_carrots: true, occupant: rabbit_pid}
+    assert CarrotPatch.to_screen(rabbits) == "2"
   end
 
   test "knows coordinates" do

@@ -9,7 +9,7 @@ defmodule CarrotWorld do
     |> Enum.map(fn(x) -> 
       Enum.to_list(0..board_size_less_one) |> Enum.map(fn(y) -> 
         {:ok, carrot_patch} = CarrotPatch.start(%{x: x, y: y}) 
-        CarrotPatch.to_screen(carrot_patch)
+        "0"
       end)
     end)
   end

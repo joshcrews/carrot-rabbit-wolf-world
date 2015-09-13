@@ -2,14 +2,12 @@ defmodule CarrotPatch do
   import CarrotPatch.Grower
   import CarrotPatch.Killer
 
-  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupant]
 
   @emoji_number 127823
   @grow_tick_interval 500
   @update_world_interval 1000
   @carrot_growth_points_required 100
-  @carrot_growth_point_speed 10
-  @carrot_life_span 35
 
   def start(%{x: x, y: y}) do
     {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y})
@@ -18,32 +16,24 @@ defmodule CarrotPatch do
     {:ok, pid}
   end
 
-  def has_carrots?(pid) do
-    GenServer.call(pid, {:get, :has_carrots})
-  end
-
-  def grow_carrots(pid) do
-    GenServer.cast(pid, {:put, :new_carrots})
-  end
-
-  def remove_carrots(pid) do
-    GenServer.cast(pid, {:put, :remove_carrots})
-  end
-
-  def to_screen({:has_carrots, has_carrots}) do
-    cond do
-      has_carrots -> "1"
-      :else -> "0"
-    end
-  end
-
-  def to_screen(pid) do
-    has_carrots = GenServer.call(pid, {:get, :has_carrots})
-    to_screen({:has_carrots, has_carrots})
-  end
-
   def coordinates(pid) do
     GenServer.call(pid, {:get, :coordinates})
+  end
+
+  def spawn_rabbit(pid) do
+    Rabbit.start(pid)
+  end
+
+  def register_occupant({carrot_patch, occupant}) do
+    GenServer.cast(carrot_patch, {:put, {:occupant, occupant}})
+  end
+
+  def to_screen(%{has_carrots: has_carrots, occupant: occupant}) do
+    cond do
+      occupant ->    "2"
+      has_carrots -> "1"
+      :else ->       "0"
+    end
   end
   
   
@@ -84,6 +74,11 @@ defmodule CarrotPatch do
     {:noreply, new_state}
   end
 
+  def handle_cast({:put, {:occupant, occupant}}, state = %CarrotPatch{}) do
+    new_state = %CarrotPatch{state | occupant: occupant}
+    {:noreply, new_state}
+  end
+
   def terminate(reason, state) do
     IO.puts " ----------- "
     IO.inspect self
@@ -96,12 +91,23 @@ defmodule CarrotPatch do
 
   defp tick_world(state) do
     state
+    |> spawn_rabbits
     |> grow_and_recognize_new_carrots    
     |> age_existing_and_kill_carrots
   end
 
-  defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots}) do
-    graphics = CarrotPatch.to_screen({:has_carrots, has_carrots})
+  defp spawn_rabbits(state) do
+    dice_roll = :random.uniform(100_000)
+
+    if dice_roll > 99_990 do
+       CarrotPatch.spawn_rabbit(self)
+    end
+
+    state
+  end
+
+  defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots, occupant: occupant}) do
+    graphics = CarrotPatch.to_screen(%{has_carrots: has_carrots, occupant: occupant})
     CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
     state
   end
