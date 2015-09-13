@@ -1,5 +1,6 @@
-
 defmodule CarrotPatch do
+  import CarrotPatch.Grower
+  import CarrotPatch.Killer
 
   defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age]
 
@@ -94,67 +95,14 @@ defmodule CarrotPatch do
 
   defp tick_world(state) do
     state
-    |> add_carrot_growth_points
-    |> recognize_new_carrots
-    |> age_existing_carrots
-    |> old_carrots_die
+    |> grow_and_recognize_new_carrots    
+    |> age_existing_and_kill_carrots
   end
 
   defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots}) do
     graphics = CarrotPatch.to_screen({:has_carrots, has_carrots})
     CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
     state
-  end
-
-
-  defp add_carrot_growth_points(state = %CarrotPatch{has_carrots: true}) do
-    state
-  end
-
-  defp add_carrot_growth_points(state = %CarrotPatch{carrot_growth_points: carrot_growth_points, has_carrots: false}) do
-    additional_carrot_growth_points = :random.uniform(@carrot_growth_point_speed)
-    new_carrot_growth_points = additional_carrot_growth_points + carrot_growth_points
-    %CarrotPatch{state | carrot_growth_points: new_carrot_growth_points}
-  end
-
-  
-
-  defp age_existing_carrots(state = %CarrotPatch{has_carrots: false}) do
-    state
-  end
-
-  defp age_existing_carrots(state = %CarrotPatch{has_carrots: true, carrot_age: carrot_age}) do
-    %CarrotPatch{state | carrot_age: carrot_age + 1}
-  end
-
-
-
-  defp recognize_new_carrots(state = %CarrotPatch{has_carrots: true}) do
-    state
-  end
-
-  defp recognize_new_carrots(state = %CarrotPatch{has_carrots: false, carrot_growth_points: carrot_growth_points}) do
-    cond do
-      carrot_growth_points > 100 ->
-        %CarrotPatch{state | has_carrots: true, carrot_growth_points: 0, carrot_age: 0}
-      :else ->
-        state
-    end    
-  end
-
-
-
-  defp old_carrots_die(state = %CarrotPatch{has_carrots: false}) do
-    state
-  end
-
-  defp old_carrots_die(state = %CarrotPatch{carrot_age: carrot_age, has_carrots: true}) do
-    cond do
-      carrot_age > @carrot_life_span ->
-        %CarrotPatch{state | has_carrots: false, carrot_growth_points: 0, carrot_age: 0}
-      :else ->
-        state
-    end    
   end
 
 end

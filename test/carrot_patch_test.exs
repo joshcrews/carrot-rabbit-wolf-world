@@ -14,6 +14,7 @@ defmodule CarrotPatchTest do
     assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
   end
 
+
   test "removes carrots", context do
     CarrotPatch.grow_carrots(context[:carrot_patch])
     assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
@@ -42,29 +43,6 @@ defmodule CarrotPatchTest do
   test "knows coordinates" do
     {:ok, carrot_patch} = CarrotPatch.start(%{x: 1, y: 2})
     assert CarrotPatch.coordinates(carrot_patch) == %{x: 1, y: 2}
-  end
-
-  test "carrots will grow", context do
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
-
-    #
-    # 100 growth ticks
-    #
-    (1..40) |> Enum.each(fn(_) -> send(context[:carrot_patch], :grow_tick) end)
-
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
-  end
-
-  test "carrots will die", context do
-    CarrotPatch.grow_carrots(context[:carrot_patch])
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == true
-
-    #
-    # 40 growth ticks
-    #
-    (1..40) |> Enum.each(fn(_) -> send(context[:carrot_patch], :grow_tick) end)
-
-    assert CarrotPatch.has_carrots?(context[:carrot_patch]) == false
   end
 
 end
