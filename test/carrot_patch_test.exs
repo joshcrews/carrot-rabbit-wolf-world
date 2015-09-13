@@ -8,7 +8,7 @@ defmodule CarrotPatchTest do
 
   test "render graphics", context do
     empty = %{has_carrots: false, occupant: nil}
-    assert CarrotPatch.to_screen(empty) == "0"
+    assert CarrotPatch.to_screen(empty) == " "
 
     carrots = %{has_carrots: true, occupant: nil}
     assert CarrotPatch.to_screen(carrots) == "1"

@@ -6,9 +6,9 @@ defmodule CarrotWorldServerTest do
     CarrotWorldServer.start(%{board_size: 3})
 
     correct_map = [
-      ["0","0","0"],
-      ["0","0","0"],
-      ["0","0","0"],
+      [" "," "," "],
+      [" "," "," "],
+      [" "," "," "],
     ]
 
     assert CarrotWorldServer.render_map == correct_map
@@ -18,9 +18,9 @@ defmodule CarrotWorldServerTest do
     CarrotWorldServer.start(%{board_size: 3})
 
     correct_map = [
-      ["1","0","0"],
-      ["0","0","0"],
-      ["0","1","0"],
+      ["1"," "," "],
+      [" "," "," "],
+      [" ","1"," "],
     ]
 
     CarrotWorldServer.put_patch(%{x: 0, y: 0, graphics: "1"})

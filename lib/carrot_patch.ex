@@ -32,7 +32,7 @@ defmodule CarrotPatch do
     cond do
       occupant ->    "2"
       has_carrots -> "1"
-      :else ->       "0"
+      :else ->       " "
     end
   end
   
