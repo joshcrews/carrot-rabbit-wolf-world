@@ -51,7 +51,8 @@ defmodule CarrotPatch do
   # =============== Server Callbacks
 
   def init(%{x: x, y: y}) do
-    :random.seed(:erlang.now)
+    seed = {x+y, :erlang.monotonic_time, :erlang.unique_integer}
+    :random.seed(seed)
     carrot_growth_points = :random.uniform(@carrot_growth_points_required)
     {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0}}
   end
