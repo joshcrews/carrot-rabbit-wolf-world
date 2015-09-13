@@ -2,15 +2,15 @@ defmodule CarrotPatch do
   import CarrotPatch.Grower
   import CarrotPatch.Killer
 
-  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupant]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupant, :board_size]
 
   @emoji_number 127823
   @grow_tick_interval 500
   @update_world_interval 1000
   @carrot_growth_points_required 100
 
-  def start(%{x: x, y: y}) do
-    {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y})
+  def start(%{x: x, y: y, board_size: board_size}) do
+    {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y, board_size: board_size})
     :timer.send_interval(@grow_tick_interval, pid, :grow_tick)
     :timer.send_interval(@update_world_interval, pid, :update_world_tick)
     {:ok, pid}
@@ -20,13 +20,23 @@ defmodule CarrotPatch do
     GenServer.call(pid, {:get, :coordinates})
   end
 
-  def spawn_rabbit(pid) do
-    Rabbit.start(pid)
+  def spawn_rabbit(pid, board_size) do
+    Rabbit.start(pid, board_size)
   end
 
   def register_occupant({carrot_patch, occupant}) do
     GenServer.cast(carrot_patch, {:put, {:occupant, occupant}})
   end
+
+  def occupant_arrived({carrot_patch, occupant}) do
+    GenServer.call(carrot_patch, {:put, {:occupant, occupant}})
+  end
+
+  def occupant_left({carrot_patch, occupant}) do
+    GenServer.cast(carrot_patch, {:delete, {:occupant, occupant}})
+  end
+  
+  
 
   def to_screen(%{has_carrots: has_carrots, occupant: occupant}) do
     cond do
@@ -40,11 +50,11 @@ defmodule CarrotPatch do
 
   # =============== Server Callbacks
 
-  def init(%{x: x, y: y}) do
+  def init(%{x: x, y: y, board_size: board_size}) do
     seed = {x+y, :erlang.monotonic_time, :erlang.unique_integer}
     :random.seed(seed)
     carrot_growth_points = :random.uniform(@carrot_growth_points_required)
-    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0}}
+    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0, board_size: board_size}}
   end
 
   def handle_info(:grow_tick, state) do
@@ -55,22 +65,19 @@ defmodule CarrotPatch do
     {:noreply, update_world(state)}
   end
 
-  def handle_call({:get, :has_carrots}, _, state = %CarrotPatch{has_carrots: has_carrots}) do
-    {:reply, has_carrots, state}
-  end
-
   def handle_call({:get, :coordinates}, _, state = %CarrotPatch{x: x, y: y}) do
     reply = %{x: x, y: y}
     {:reply, reply, state}
   end
 
-  def handle_cast({:put, :new_carrots}, state = %CarrotPatch{}) do
-    new_state = %CarrotPatch{state | :has_carrots => true}
-    {:noreply, new_state}
+  def handle_call({:put, {:occupant, occupant}}, _, state = %CarrotPatch{occupant: current_occupant}) do
+    new_state = %CarrotPatch{state | occupant: occupant}
+    reply = {:success, self}
+    {:reply, reply, new_state}
   end
 
-  def handle_cast({:put, :remove_carrots}, state = %CarrotPatch{}) do
-    new_state = %CarrotPatch{state | :has_carrots => false}
+  def handle_cast({:delete, {:occupant, _}}, state = %CarrotPatch{}) do
+    new_state = %CarrotPatch{state | occupant: nil}
     {:noreply, new_state}
   end
 
@@ -79,12 +86,6 @@ defmodule CarrotPatch do
     {:noreply, new_state}
   end
 
-  def terminate(reason, state) do
-    IO.puts " ----------- "
-    IO.inspect self
-    IO.inspect reason
-    :ok
-  end
   
 
   # =============== Private functions
@@ -100,7 +101,7 @@ defmodule CarrotPatch do
     dice_roll = :random.uniform(100_000)
 
     if dice_roll > 99_990 do
-       CarrotPatch.spawn_rabbit(self)
+       CarrotPatch.spawn_rabbit(self, state.board_size)
     end
 
     state

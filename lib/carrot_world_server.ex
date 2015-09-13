@@ -25,6 +25,11 @@ defmodule CarrotWorldServer do
   def put_patch(%{x: x, y: y, graphics: graphics}) do
     GenServer.cast(:carrot_world_server, {:put_patch, %{x: x, y: y, graphics: graphics}})
   end
+
+  def carrot_patch_at(%{x: x, y: y}) do
+    GenServer.call(:carrot_world_server, {:get_patch_at, %{x: x, y: y}})
+  end
+  
   
   
   # ===============
@@ -34,17 +39,23 @@ defmodule CarrotWorldServer do
     {:ok, state}
   end
 
-  def handle_call({:get, :map}, _, state) do
-    {:reply, state, state}
+  def handle_call({:get, :map}, _, state = %{board: board}) do
+    {:reply, board, state}
   end
 
-  def handle_cast({:put_patch, %{x: x, y: y, graphics: graphics}}, state) do
-    new_state = CarrotWorld.replace_at(state, %{x: x, y: y}, graphics)
+  def handle_call({:get_patch_at, %{x: x, y: y}}, _, state = %{carrot_patches: carrot_patches}) do
+    carrot_patch = CarrotWorld.find_at(carrot_patches, %{x: x, y: y})
+    {:reply, carrot_patch, state}
+  end
+
+  def handle_cast({:put_patch, %{x: x, y: y, graphics: graphics}}, state = %{board: board}) do
+    new_board = CarrotWorld.replace_at(board, %{x: x, y: y}, graphics)
+    new_state = %CarrotWorld{state | board: new_board}
     {:noreply, new_state}
   end
 
-  def handle_info(:tick, state) do
-    state
+  def handle_info(:tick, state = %{board: board}) do
+    board
     |> Enum.each(fn(row) -> IO.puts(Enum.join(row, " ")) end)
 
     IO.puts ""
