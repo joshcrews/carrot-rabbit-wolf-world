@@ -1,11 +1,12 @@
 
 defmodule CarrotPatch do
 
-  defstruct [:has_carrots, :x, :y]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points]
 
   @emoji_number 127823
   @grow_tick_interval 500
   @update_world_interval 1000
+  @carrot_growth_point_speed 10
 
   def start(%{x: x, y: y}) do
     {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y})
@@ -31,7 +32,6 @@ defmodule CarrotPatch do
       has_carrots -> "1"
       :else -> "0"
     end
-    Enum.shuffle(["0", "1"]) |> List.first
   end
 
   def to_screen(pid) do
@@ -49,7 +49,7 @@ defmodule CarrotPatch do
 
   def init(%{x: x, y: y}) do
     :random.seed(:erlang.now)
-    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y}}
+    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: 0}}
   end
 
   def handle_info(:grow_tick, state) do
@@ -91,6 +91,8 @@ defmodule CarrotPatch do
 
   defp tick_world(state) do
     state
+    |> add_carrot_growth_points
+    |> recognize_new_carrots
   end
 
   defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots}) do
@@ -98,5 +100,22 @@ defmodule CarrotPatch do
     CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
     state
   end
+
+  defp add_carrot_growth_points(state = %CarrotPatch{carrot_growth_points: carrot_growth_points}) do
+    additional_carrot_growth_points = :random.uniform(@carrot_growth_point_speed)
+    new_carrot_growth_points = additional_carrot_growth_points + carrot_growth_points
+    %CarrotPatch{state | carrot_growth_points: new_carrot_growth_points}
+  end
+
+  defp recognize_new_carrots(state = %CarrotPatch{carrot_growth_points: carrot_growth_points}) do
+    cond do
+      carrot_growth_points > 100 ->
+        %CarrotPatch{state | has_carrots: true, carrot_growth_points: 0}
+      :else ->
+        state
+    end
+    
+  end
+  
   
 end
