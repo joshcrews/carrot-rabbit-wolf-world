@@ -8,6 +8,8 @@ defmodule CarrotPatch do
   @grow_tick_interval 500
   @update_world_interval 1000
   @carrot_growth_points_required 100
+  @carrot_graphic "."
+  @occupant_graphic "R"
 
   def start(%{x: x, y: y, board_size: board_size}) do
     {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y, board_size: board_size})
@@ -40,8 +42,8 @@ defmodule CarrotPatch do
 
   def to_screen(%{has_carrots: has_carrots, occupant: occupant}) do
     cond do
-      occupant ->    "2"
-      has_carrots -> "1"
+      occupant ->    @occupant_graphic
+      has_carrots -> @carrot_graphic
       :else ->       " "
     end
   end

@@ -11,11 +11,11 @@ defmodule CarrotPatchTest do
     assert CarrotPatch.to_screen(empty) == " "
 
     carrots = %{has_carrots: true, occupant: nil}
-    assert CarrotPatch.to_screen(carrots) == "1"
+    assert CarrotPatch.to_screen(carrots) == "."
 
     {:ok, rabbit_pid} = CarrotPatch.spawn_rabbit(context[:carrot_patch], 10)
     rabbits = %{has_carrots: true, occupant: rabbit_pid}
-    assert CarrotPatch.to_screen(rabbits) == "2"
+    assert CarrotPatch.to_screen(rabbits) == "R"
   end
 
   test "knows coordinates", context do
