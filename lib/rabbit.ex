@@ -7,6 +7,7 @@ defmodule Rabbit do
   defstruct [:current_coordinates, :board_size, :carrots_in_belly]
 
   @move_tick_interval 500
+  @carrots_in_belly_before_reproduce 5
 
   # Spawned onto a carrot patch
   #  -> eats any carrots there
@@ -64,6 +65,18 @@ defmodule Rabbit do
     state
     |> move_patches
     |> try_to_eat_carrots
+    |> make_babies
+  end
+
+  def make_babies(state) do
+    cond do
+     state.carrots_in_belly > @carrots_in_belly_before_reproduce ->
+      starting_coordinates = state.current_coordinates
+      Rabbit.start(starting_coordinates, board_size: state.board_size)
+      %Rabbit{state | carrots_in_belly: 0}
+    :else ->
+      state
+    end
   end
 
   def try_to_eat_carrots(state) do
