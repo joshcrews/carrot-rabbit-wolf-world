@@ -46,20 +46,19 @@ defmodule Rabbit do
   end
 
   defp move_patches(state) do
-    next_carrot_patch_coordinates = valid_neighbor_patches(state) |> List.first
+    next_carrot_patch = next_carrot_patch_coordinates(state)
+                          |> carrot_patch_finder.carrot_patch_at
 
-    next_carrot_patch = carrot_patch_finder.carrot_patch_at(next_carrot_patch_coordinates)
+    CarrotPatch.occupant_arrived({next_carrot_patch, self})
+    CarrotPatch.occupant_left({state.current_carrot_patch, self})
+        
+    %Rabbit{state | current_carrot_patch: next_carrot_patch}
+  end
 
-    {move_success, next_carrot_patch} = CarrotPatch.occupant_arrived({next_carrot_patch, self})
-
-    cond do
-      move_success == :success -> 
-        CarrotPatch.occupant_left({state.current_carrot_patch, self})
-        %Rabbit{state | current_carrot_patch: next_carrot_patch}
-      :else ->
-        state
-    end
-
+  def next_carrot_patch_coordinates(state) do
+    valid_neighbor_patches(state) 
+      |> Enum.shuffle
+      |> List.first
   end
 
   defp carrot_patch_finder do

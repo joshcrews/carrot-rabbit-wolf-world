@@ -31,7 +31,7 @@ defmodule CarrotPatch do
   end
 
   def occupant_arrived({carrot_patch, occupant}) do
-    GenServer.call(carrot_patch, {:put, {:occupant, occupant}})
+    GenServer.cast(carrot_patch, {:put, {:occupant, occupant}})
   end
 
   def occupant_left({carrot_patch, occupant}) do
@@ -70,12 +70,6 @@ defmodule CarrotPatch do
   def handle_call({:get, :coordinates}, _, state = %CarrotPatch{x: x, y: y}) do
     reply = %{x: x, y: y}
     {:reply, reply, state}
-  end
-
-  def handle_call({:put, {:occupant, occupant}}, _, state = %CarrotPatch{occupant: current_occupant}) do
-    new_state = %CarrotPatch{state | occupant: occupant}
-    reply = {:success, self}
-    {:reply, reply, new_state}
   end
 
   def handle_cast({:delete, {:occupant, _}}, state = %CarrotPatch{}) do
