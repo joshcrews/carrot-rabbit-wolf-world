@@ -29,4 +29,11 @@ defmodule CarrotWorldServerTest do
     assert CarrotWorldServer.render_map == correct_map
   end
 
+  test "spawns rabbit", context do
+    CarrotWorldServer.start(%{board_size: 10})
+    {response, _} = CarrotWorldServer.spawn_rabbit(10)
+    assert response == :ok 
+  end
+
+
 end

@@ -22,13 +22,6 @@ defmodule CarrotPatchTest do
     assert CarrotPatch.coordinates(context[:carrot_patch]) == %{x: 0, y: 0}
   end
 
-  test "spawns rabbit", context do
-    CarrotWorldServer.start(%{board_size: 10})
-    coordinates = CarrotPatch.coordinates(context[:carrot_patch])
-    {:ok, rabbit} = CarrotPatch.spawn_rabbit(coordinates, 10)
-    assert Rabbit.coordinates(rabbit) == %{x: 0, y: 0}
-  end
-
   test "carrots get eaten" do
     carrot_patch = %CarrotPatch{has_carrots: true, carrot_age: 0}
     assert carrot_patch.has_carrots == true

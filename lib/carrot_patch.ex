@@ -24,10 +24,6 @@ defmodule CarrotPatch do
     GenServer.call(pid, {:get, :coordinates})
   end
 
-  def spawn_rabbit(start_coordinates, board_size) do
-    {:ok, rabbit} = Rabbit.start(start_coordinates, board_size: board_size)
-  end
-
   def eat_carrots(pid) do
     response = GenServer.call(pid, :eat_carrots)
     {:ok, response}
@@ -114,20 +110,8 @@ defmodule CarrotPatch do
 
   defp tick_world(state) do
     state
-    |> spawn_rabbits
     |> grow_and_recognize_new_carrots    
     |> age_existing_and_kill_carrots
-  end
-
-  defp spawn_rabbits(state) do
-    dice_roll = :random.uniform(100_000)
-
-    if dice_roll > 99_990 do
-      coordinates = %{x: state.x, y: state.y}
-      CarrotPatch.spawn_rabbit(coordinates, state.board_size)
-    end
-
-    state
   end
 
   defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots, occupant: occupant}) do

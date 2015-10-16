@@ -1,7 +1,10 @@
+require IEx
+
 defmodule CarrotWorldServer do
   use GenServer
 
   @world_tick 100
+  @rabbit_spawn_tick 1000
 
   def start(%{board_size: board_size}) do
     GenServer.start_link(CarrotWorldServer, {:board_size, board_size}, name: :carrot_world_server)
@@ -14,7 +17,8 @@ defmodule CarrotWorldServer do
 
   def sip do
     {:ok, :carrot_world_server} = start_in_production
-    :timer.send_interval(@world_tick, :carrot_world_server, :tick)
+    :timer.send_interval(@world_tick, :carrot_world_server, :world_tick)
+    :timer.send_interval(@rabbit_spawn_tick, :carrot_world_server, :rabbit_spawn_tick)
   end
   
 
@@ -71,7 +75,7 @@ defmodule CarrotWorldServer do
     {:noreply, new_state}
   end
 
-  def handle_info(:tick, state = %{board: board}) do
+  def handle_info(:world_tick, state = %{board: board}) do
     board
     |> Enum.each(fn(row) -> IO.puts(Enum.join(row, " ")) end)
 
@@ -79,6 +83,26 @@ defmodule CarrotWorldServer do
     IO.puts ""
     {:noreply, state}
   end
-  
+
+  def handle_info(:rabbit_spawn_tick, state = %{board: board}) do
+    dice_roll = :random.uniform(100)
+
+    if dice_roll > 50 do
+      board_size = length(board)
+      spawn_rabbit(board_size)
+    end
+
+    {:noreply, state}
+  end  
+
+  def spawn_rabbit(board_size) do
+    x = [0,board_size - 1] |> Enum.shuffle |> List.first
+    y = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
+    
+    coordinates = %{x: x, y: y}
+
+    Rabbit.start(coordinates, board_size: board_size)
+  end
+
   
 end
