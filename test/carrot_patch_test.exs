@@ -1,3 +1,4 @@
+require IEx
 defmodule CarrotPatchTest do
   use ExUnit.Case
   
@@ -26,6 +27,26 @@ defmodule CarrotPatchTest do
     coordinates = CarrotPatch.coordinates(context[:carrot_patch])
     {:ok, rabbit} = CarrotPatch.spawn_rabbit(coordinates, 10)
     assert Rabbit.coordinates(rabbit) == %{x: 0, y: 0}
+  end
+
+  test "carrots get eaten" do
+    carrot_patch = %CarrotPatch{has_carrots: true, carrot_age: 0}
+    assert carrot_patch.has_carrots == true
+
+    {reply, new_state} = CarrotPatch.do_eat_carrots(carrot_patch)
+
+    assert new_state.has_carrots == false
+    assert reply == true
+  end
+
+  test "carrots dont get eaten" do
+    carrot_patch = %CarrotPatch{has_carrots: false, carrot_age: 0}
+    assert carrot_patch.has_carrots == false
+
+    {reply, new_state} = CarrotPatch.do_eat_carrots(carrot_patch)
+
+    assert new_state.has_carrots == false
+    assert reply == false
   end
 
 

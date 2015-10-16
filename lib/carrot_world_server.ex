@@ -42,6 +42,11 @@ defmodule CarrotWorldServer do
     new_patch = carrot_patch_at(new_coordinates)
     CarrotPatch.occupant_arrived({new_patch, rabbit})
   end  
+
+  def rabbit_eat_carrots(rabbit, coordinates) do
+    patch_to_eat = carrot_patch_at(coordinates)
+    {:ok, got_some_carrots} = CarrotPatch.eat_carrots(patch_to_eat)
+  end
   
   
   # ===============

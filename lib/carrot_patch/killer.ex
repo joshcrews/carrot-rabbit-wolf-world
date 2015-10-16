@@ -21,7 +21,7 @@ defmodule CarrotPatch.Killer do
         %{state | has_carrots: false, carrot_growth_points: 0, carrot_age: 0}
       :else ->
         state
-    end    
+    end
   end
 
 end

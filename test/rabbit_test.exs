@@ -5,7 +5,7 @@ defmodule RabbitTest do
 
   setup do
     CarrotWorldServer.start(%{board_size: 10})
-    {:ok, rabbit} = Rabbit.start(%{x: 0, y: 0}, 10)
+    {:ok, rabbit} = Rabbit.start(%{x: 0, y: 0}, board_size: 10)
     {:ok, [rabbit: rabbit]}
   end
 
@@ -17,18 +17,11 @@ defmodule RabbitTest do
     assert Rabbit.coordinates(context[:rabbit]) == %{x: 0, y: 0}
     send(context[:rabbit], :move_tick)
     assert Rabbit.coordinates(context[:rabbit]) != %{x: 0, y: 0}    
-  end 
+  end
 
-  # test "valid neighbor patches", context do
-  #   rabbit_state = %{current_carrot_patch: context[:carrot_patch], board_size: 10}
-  #   neighbor_patches = Rabbit.valid_neighbor_patches(rabbit_state)
+  test "eats carrots" do
+    rabbit = %Rabbit{carrots_in_belly: 0}
+    assert Rabbit.eat_carrots(rabbit) == %Rabbit{carrots_in_belly: 1}
+  end
 
-  #   assert neighbor_patches == [%{x: 0, y: 1}, %{x: 1, y: 0}, %{x: 1, y: 1}]
-  # end
-
-  # @tag :focus
-  # test "moves around", context do
-  #   rabbit_state = %{current_carrot_patch: context[:carrot_patch], board_size: 10}
-  #   Rabbit.tick_world(rabbit_state)
-  # end
 end

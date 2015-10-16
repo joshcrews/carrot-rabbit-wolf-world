@@ -4,7 +4,7 @@ defmodule Rabbit do
 
   # use GenServer
 
-  defstruct [:current_coordinates, :board_size]
+  defstruct [:current_coordinates, :board_size, :carrots_in_belly]
 
   @move_tick_interval 500
 
@@ -25,7 +25,7 @@ defmodule Rabbit do
 
   # Dies after 50 rounds
 
-  def start(starting_coordinates, board_size) do
+  def start(starting_coordinates, board_size: board_size) do
     {:ok, pid} = GenServer.start_link(Rabbit, %{current_coordinates: starting_coordinates, board_size: board_size})
     :timer.send_interval(@move_tick_interval, pid, :move_tick)
     {:ok, pid}
@@ -39,7 +39,7 @@ defmodule Rabbit do
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
     CarrotWorldServer.move_rabbit(self, coordinates)
-    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size}}
+    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0}}
   end
 
   def handle_info(:move_tick, state) do
@@ -63,16 +63,25 @@ defmodule Rabbit do
   def tick_world(state) do
     state
     |> move_patches
+    |> try_to_eat_carrots
+  end
+
+  def try_to_eat_carrots(state) do
+    {:ok, carrots_found} = CarrotWorldServer.rabbit_eat_carrots(self, state.current_coordinates)
+    cond do
+      carrots_found -> eat_carrots(state)
+      :else -> state
+    end
+  end
+
+  def eat_carrots(state) do
+    %Rabbit{state | carrots_in_belly: state.carrots_in_belly + 1}
   end
 
   def move_patches(state) do
-    
-
     next_coordinates = next_coordinates(state)
 
     current_coordinates = state.current_coordinates
-
-    
 
     enter_and_leave({current_coordinates, next_coordinates})
         

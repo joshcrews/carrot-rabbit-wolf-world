@@ -25,7 +25,12 @@ defmodule CarrotPatch do
   end
 
   def spawn_rabbit(start_coordinates, board_size) do
-    {:ok, rabbit} = Rabbit.start(start_coordinates, board_size)
+    {:ok, rabbit} = Rabbit.start(start_coordinates, board_size: board_size)
+  end
+
+  def eat_carrots(pid) do
+    response = GenServer.call(pid, :eat_carrots)
+    {:ok, response}
   end
 
   def register_occupant({carrot_patch, occupant}) do
@@ -40,8 +45,6 @@ defmodule CarrotPatch do
     GenServer.cast(carrot_patch, {:delete, {:occupant, occupant}})
   end
   
-  
-
   def to_screen(%{has_carrots: has_carrots, occupant: occupant}) do
     cond do
       occupant ->    @occupant_graphic
@@ -74,6 +77,11 @@ defmodule CarrotPatch do
     {:reply, reply, state}
   end
 
+  def handle_call(:eat_carrots, _, state = %CarrotPatch{}) do
+    {reply, new_state} = do_eat_carrots(state)
+    {:reply, reply, new_state}
+  end
+
   def handle_cast({:delete, {:occupant, _}}, state = %CarrotPatch{}) do
     new_state = %CarrotPatch{state | occupant: nil}
     {:noreply, new_state}
@@ -94,6 +102,15 @@ defmodule CarrotPatch do
   
 
   # =============== Private functions
+
+  def do_eat_carrots(state = %CarrotPatch{has_carrots: has_carrots}) do
+    cond do
+      has_carrots ->
+        {true, %{state | has_carrots: false, carrot_growth_points: 0, carrot_age: 0}}
+      :else ->
+        {false, state}
+    end
+  end
 
   defp tick_world(state) do
     state
