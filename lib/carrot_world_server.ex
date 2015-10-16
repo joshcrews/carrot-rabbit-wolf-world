@@ -5,7 +5,6 @@ defmodule CarrotWorldServer do
 
   def start(%{board_size: board_size}) do
     GenServer.start_link(CarrotWorldServer, {:board_size, board_size}, name: :carrot_world_server)
-    :timer.send_interval(@world_tick, :carrot_world_server, :tick)
     {:ok, :carrot_world_server}
   end
 
@@ -14,7 +13,8 @@ defmodule CarrotWorldServer do
   end
 
   def sip do
-    start_in_production
+    {:ok, :carrot_world_server} = start_in_production
+    :timer.send_interval(@world_tick, :carrot_world_server, :tick)
   end
   
 
@@ -29,7 +29,19 @@ defmodule CarrotWorldServer do
   def carrot_patch_at(%{x: x, y: y}) do
     GenServer.call(:carrot_world_server, {:get_patch_at, %{x: x, y: y}})
   end
-  
+
+  def move_rabbit(rabbit, {old_coordinates, new_coordinates}) do
+    new_patch = carrot_patch_at(new_coordinates)
+    old_patch = carrot_patch_at(old_coordinates)
+    
+    CarrotPatch.occupant_arrived({new_patch, rabbit})
+    CarrotPatch.occupant_left({old_patch, rabbit})
+  end
+
+  def move_rabbit(rabbit, new_coordinates) do
+    new_patch = carrot_patch_at(new_coordinates)
+    CarrotPatch.occupant_arrived({new_patch, rabbit})
+  end  
   
   
   # ===============

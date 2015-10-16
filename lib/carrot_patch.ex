@@ -2,6 +2,8 @@ defmodule CarrotPatch do
   import CarrotPatch.Grower
   import CarrotPatch.Killer
 
+  # use GenServer
+
   defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupant, :board_size]
 
   @emoji_number 127823
@@ -22,8 +24,8 @@ defmodule CarrotPatch do
     GenServer.call(pid, {:get, :coordinates})
   end
 
-  def spawn_rabbit(pid, board_size) do
-    Rabbit.start(pid, board_size)
+  def spawn_rabbit(start_coordinates, board_size) do
+    {:ok, rabbit} = Rabbit.start(start_coordinates, board_size)
   end
 
   def register_occupant({carrot_patch, occupant}) do
@@ -82,6 +84,13 @@ defmodule CarrotPatch do
     {:noreply, new_state}
   end
 
+  def terminate(reason, state) do
+    IO.puts "terminated CarrotPatch"
+    IO.inspect reason
+    IO.inspect state
+    :ok
+  end
+
   
 
   # =============== Private functions
@@ -97,7 +106,8 @@ defmodule CarrotPatch do
     dice_roll = :random.uniform(100_000)
 
     if dice_roll > 99_990 do
-       CarrotPatch.spawn_rabbit(self, state.board_size)
+      coordinates = %{x: state.x, y: state.y}
+      CarrotPatch.spawn_rabbit(coordinates, state.board_size)
     end
 
     state

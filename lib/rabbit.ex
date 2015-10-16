@@ -1,6 +1,10 @@
+
+require IEx
 defmodule Rabbit do
 
-  defstruct [:current_carrot_patch, :board_size]
+  # use GenServer
+
+  defstruct [:current_coordinates, :board_size]
 
   @move_tick_interval 500
 
@@ -21,21 +25,37 @@ defmodule Rabbit do
 
   # Dies after 50 rounds
 
-  def start(starting_carrot_patch, board_size) do
-    {:ok, pid} = GenServer.start_link(Rabbit, %{current_carrot_patch: starting_carrot_patch, board_size: board_size})
+  def start(starting_coordinates, board_size) do
+    {:ok, pid} = GenServer.start_link(Rabbit, %{current_coordinates: starting_coordinates, board_size: board_size})
     :timer.send_interval(@move_tick_interval, pid, :move_tick)
     {:ok, pid}
   end
 
+  def coordinates(pid) do
+    GenServer.call(pid, {:get, :coordinates})
+  end
+
   # =============== Server Callbacks
 
-  def init(%{current_carrot_patch: carrot_patch, board_size: board_size}) do
-    CarrotPatch.register_occupant({carrot_patch, self})
-    {:ok, %Rabbit{current_carrot_patch: carrot_patch, board_size: board_size}}
+  def init(%{current_coordinates: coordinates, board_size: board_size}) do
+    CarrotWorldServer.move_rabbit(self, coordinates)
+    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size}}
   end
 
   def handle_info(:move_tick, state) do
     {:noreply, tick_world(state)}
+  end
+
+  def handle_call({:get, :coordinates}, _, state = %Rabbit{current_coordinates: %{x: x, y: y}}) do
+    reply = %{x: x, y: y}
+    {:reply, reply, state}
+  end
+
+  def terminate(reason, state) do
+    IO.puts "terminated Rabbit"
+    IO.inspect reason
+    IO.inspect state
+    :ok
   end
   
   # =============== Private functions
@@ -45,17 +65,25 @@ defmodule Rabbit do
     |> move_patches
   end
 
-  defp move_patches(state) do
-    next_carrot_patch = next_carrot_patch_coordinates(state)
-                          |> carrot_patch_finder.carrot_patch_at
+  def move_patches(state) do
+    
 
-    CarrotPatch.occupant_arrived({next_carrot_patch, self})
-    CarrotPatch.occupant_left({state.current_carrot_patch, self})
+    next_coordinates = next_coordinates(state)
+
+    current_coordinates = state.current_coordinates
+
+    
+
+    enter_and_leave({current_coordinates, next_coordinates})
         
-    %Rabbit{state | current_carrot_patch: next_carrot_patch}
+    %Rabbit{state | current_coordinates: next_coordinates}
   end
 
-  def next_carrot_patch_coordinates(state) do
+  def enter_and_leave({old_coordinates, new_coordinates}) do
+    CarrotWorldServer.move_rabbit(self, {old_coordinates, new_coordinates})
+  end
+
+  def next_coordinates(state) do
     valid_neighbor_patches(state) 
       |> Enum.shuffle
       |> List.first
@@ -72,7 +100,7 @@ defmodule Rabbit do
   end
 
   defp all_theoritical_neighboring_coordinates(state) do
-    %{x: x, y: y} = CarrotPatch.coordinates(state.current_carrot_patch)
+    %{x: x, y: y} = state.current_coordinates
     [
       %{x: x - 1, y: y - 1},
       %{x: x - 1, y: y},
