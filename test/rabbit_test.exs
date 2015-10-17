@@ -21,7 +21,7 @@ defmodule RabbitTest do
 
   test "eats carrots" do
     rabbit = %Rabbit{carrots_in_belly: 0}
-    assert Rabbit.eat_carrots(rabbit) == %Rabbit{carrots_in_belly: 1}
+    assert Rabbit.eat_carrots(rabbit) == %Rabbit{carrots_in_belly: 1, days_since_last_carrots: 0}
   end
 
   test "makes babies" do

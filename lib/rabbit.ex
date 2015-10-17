@@ -4,27 +4,13 @@ defmodule Rabbit do
 
   # use GenServer
 
-  defstruct [:current_coordinates, :board_size, :carrots_in_belly]
+  defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive]
 
   @move_tick_interval 500
   @carrots_in_belly_before_reproduce 5
+  @day_can_live_without_carrots 10
 
-  # Spawned onto a carrot patch
-  #  -> eats any carrots there
-  #    -> eating carrot patch resets patch to 0
-
-  # Moves with each tick
-  #  moves towards a random adjacent square with carrots
-  #    -> cannot occupy a square that has an occupant (rabbit or future animal)
-  #    -> eats those carrots
-  #  or moves towards an random empty square
-
-
-  # After eating 5 carrot patches
-  #   -> second bunny appears in adjacent square
-
-
-  # Dies after 50 rounds
+  # Dies after 10 rounds with no carrots
 
   def start(starting_coordinates, board_size: board_size) do
     {:ok, pid} = GenServer.start_link(Rabbit, %{current_coordinates: starting_coordinates, board_size: board_size})
@@ -39,17 +25,27 @@ defmodule Rabbit do
   # =============== Server Callbacks
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
-    CarrotWorldServer.move_rabbit(self, coordinates)
-    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0}}
+    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0, days_since_last_carrots: 0, alive: true}}
   end
 
   def handle_info(:move_tick, state) do
-    {:noreply, tick_world(state)}
+    new_state = tick_world(state)
+    cond do
+      new_state.alive ->
+        {:noreply, new_state}
+      :else ->
+        {:stop, :normal, new_state}
+    end
   end
 
   def handle_call({:get, :coordinates}, _, state = %Rabbit{current_coordinates: %{x: x, y: y}}) do
     reply = %{x: x, y: y}
     {:reply, reply, state}
+  end
+
+  def terminate(:normal, state) do
+    CarrotWorldServer.remove_rabbit(self, state.current_coordinates)
+    :ok
   end
 
   def terminate(reason, state) do
@@ -66,6 +62,21 @@ defmodule Rabbit do
     |> move_patches
     |> try_to_eat_carrots
     |> make_babies
+    |> age
+    |> die
+  end
+
+  def age(state) do
+    %Rabbit{state | days_since_last_carrots: state.days_since_last_carrots + 1}
+  end
+
+  def die(state) do
+    cond do
+      state.days_since_last_carrots > @day_can_live_without_carrots ->
+        %Rabbit{state | alive: false}
+      :else ->
+        state
+    end
   end
 
   def make_babies(state) do
@@ -88,7 +99,7 @@ defmodule Rabbit do
   end
 
   def eat_carrots(state) do
-    %Rabbit{state | carrots_in_belly: state.carrots_in_belly + 1}
+    %Rabbit{state | carrots_in_belly: state.carrots_in_belly + 1, days_since_last_carrots: 0}
   end
 
   def move_patches(state) do
