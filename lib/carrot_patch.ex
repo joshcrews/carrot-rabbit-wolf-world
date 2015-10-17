@@ -1,17 +1,20 @@
+require IEx
+
 defmodule CarrotPatch do
   import CarrotPatch.Grower
   import CarrotPatch.Killer
 
   # use GenServer
 
-  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupant, :board_size]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupants, :board_size]
 
   @emoji_number 127823
   @grow_tick_interval 500
   @update_world_interval 1000
   @carrot_growth_points_required 100
   @carrot_graphic "."
-  @occupant_graphic "R"
+  @rabbit_graphic "R"
+  @wolf_graphic "W"
 
   def start(%{x: x, y: y, board_size: board_size}) do
     {:ok, pid} = GenServer.start_link(CarrotPatch, %{x: x, y: y, board_size: board_size})
@@ -29,8 +32,9 @@ defmodule CarrotPatch do
     {:ok, response}
   end
 
-  def register_occupant({carrot_patch, occupant}) do
-    GenServer.cast(carrot_patch, {:put, {:occupant, occupant}})
+  def eat_rabbits(pid) do
+    response = GenServer.call(pid, :eat_rabbits)
+    {:ok, response}
   end
 
   def occupant_arrived({carrot_patch, occupant}) do
@@ -41,9 +45,16 @@ defmodule CarrotPatch do
     GenServer.cast(carrot_patch, {:delete, {:occupant, occupant}})
   end
   
-  def to_screen(%{has_carrots: has_carrots, occupant: occupant}) do
+  def to_screen(%{has_carrots: has_carrots, occupants: [occupant | tail]}) do
+    {animal, animal_name} = occupant
     cond do
-      occupant ->    @occupant_graphic
+      animal_name == :wolf -> @wolf_graphic
+      :else -> @rabbit_graphic
+    end
+  end
+
+  def to_screen(%{has_carrots: has_carrots, occupants: []}) do
+    cond do
       has_carrots -> @carrot_graphic
       :else ->       " "
     end
@@ -57,7 +68,7 @@ defmodule CarrotPatch do
     seed = {x+y, :erlang.monotonic_time, :erlang.unique_integer}
     :random.seed(seed)
     carrot_growth_points = :random.uniform(@carrot_growth_points_required)
-    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0, board_size: board_size}}
+    {:ok, %CarrotPatch{has_carrots: false, x: x, y: y, carrot_growth_points: carrot_growth_points, carrot_age: 0, board_size: board_size, occupants: []}}
   end
 
   def handle_info(:grow_tick, state) do
@@ -78,13 +89,20 @@ defmodule CarrotPatch do
     {:reply, reply, new_state}
   end
 
-  def handle_cast({:delete, {:occupant, _}}, state = %CarrotPatch{}) do
-    new_state = %CarrotPatch{state | occupant: nil}
+  def handle_call(:eat_rabbits, _, state = %CarrotPatch{}) do
+    {reply, new_state} = do_eat_rabbits(state)
+    {:reply, reply, new_state}
+  end
+
+  def handle_cast({:delete, {:occupant, occupant}}, state = %CarrotPatch{occupants: occupants}) do
+    occupant_list = List.delete(occupants, occupant)
+    new_state = %CarrotPatch{state | occupants: occupant_list}
     {:noreply, new_state}
   end
 
-  def handle_cast({:put, {:occupant, occupant}}, state = %CarrotPatch{}) do
-    new_state = %CarrotPatch{state | occupant: occupant}
+  def handle_cast({:put, {:occupant, occupant}}, state = %CarrotPatch{occupants: occupants}) do
+    occupant_list = [occupant | occupants]
+    new_state = %CarrotPatch{state | occupants: occupant_list}
     {:noreply, new_state}
   end
 
@@ -108,14 +126,29 @@ defmodule CarrotPatch do
     end
   end
 
+  def do_eat_rabbits(state = %CarrotPatch{occupants: occupants}) do
+    rabbits = Enum.filter(occupants, fn({_, animal_name}) -> animal_name == :rabbit end)
+
+    cond do
+      length(rabbits) > 0 ->
+        rabbit_tuple = List.first(rabbits)
+        {rabbit, _} = rabbit_tuple
+        Rabbit.eaten_by_wolf(rabbit)
+        new_occupants = List.delete(occupants, rabbit_tuple)
+        {true, %{state | occupants: new_occupants}}
+      :else ->
+        {false, state}
+    end
+  end
+
   defp tick_world(state) do
     state
     |> grow_and_recognize_new_carrots    
     |> age_existing_and_kill_carrots
   end
 
-  defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots, occupant: occupant}) do
-    graphics = CarrotPatch.to_screen(%{has_carrots: has_carrots, occupant: occupant})
+  defp update_world(state = %CarrotPatch{x: x, y: y, has_carrots: has_carrots, occupants: occupants}) do
+    graphics = CarrotPatch.to_screen(%{has_carrots: has_carrots, occupants: occupants})
     CarrotWorldServer.put_patch(%{x: x, y: y, graphics: graphics})
     state
   end

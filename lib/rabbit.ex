@@ -1,7 +1,5 @@
-
-require IEx
 defmodule Rabbit do
-
+  import Animal
   # use GenServer
 
   defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive]
@@ -22,6 +20,10 @@ defmodule Rabbit do
     GenServer.call(pid, {:get, :coordinates})
   end
 
+  def eaten_by_wolf(pid) do
+    send(pid, :eaten_by_wolf)
+  end
+
   # =============== Server Callbacks
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
@@ -38,13 +40,17 @@ defmodule Rabbit do
     end
   end
 
+  def handle_info(:eaten_by_wolf, state) do
+    {:stop, :normal, state}
+  end
+
   def handle_call({:get, :coordinates}, _, state = %Rabbit{current_coordinates: %{x: x, y: y}}) do
     reply = %{x: x, y: y}
     {:reply, reply, state}
   end
 
   def terminate(:normal, state) do
-    CarrotWorldServer.remove_rabbit(self, state.current_coordinates)
+    CarrotWorldServer.remove_animal({self, :rabbit}, state.current_coordinates)
     :ok
   end
 
@@ -113,44 +119,12 @@ defmodule Rabbit do
   end
 
   def enter_and_leave({old_coordinates, new_coordinates}) do
-    CarrotWorldServer.move_rabbit(self, {old_coordinates, new_coordinates})
+    CarrotWorldServer.move_animal({self, :rabbit}, {old_coordinates, new_coordinates})
   end
 
-  def next_coordinates(state) do
-    valid_neighbor_patches(state) 
-      |> Enum.shuffle
-      |> List.first
-  end
+  
 
-  defp carrot_patch_finder do
-    CarrotWorldServer
-  end
-
-  def valid_neighbor_patches(state) do
-    board_size = state.board_size
-    all_theoritical_neighboring_coordinates(state)
-    |> Enum.filter(fn(coords) -> not_off_the_board(coords, board_size) end)
-  end
-
-  defp all_theoritical_neighboring_coordinates(state) do
-    %{x: x, y: y} = state.current_coordinates
-    [
-      %{x: x - 1, y: y - 1},
-      %{x: x - 1, y: y},
-      %{x: x - 1, y: y + 1},
-      %{x: x, y: y - 1},
-      %{x: x, y: y + 1},
-      %{x: x + 1, y: y - 1},
-      %{x: x + 1, y: y},
-      %{x: x + 1, y: y + 1},
-    ]
-  end
-
-  defp not_off_the_board(%{x: x, y: _}, board_size) when x < 0, do: false
-  defp not_off_the_board(%{x: _, y: y}, board_size) when y < 0, do: false
-  defp not_off_the_board(%{x: x, y: _}, board_size) when x >= board_size, do: false
-  defp not_off_the_board(%{x: _, y: y}, board_size) when y >= board_size, do: false
-  defp not_off_the_board(%{x: _, y: _}, board_size), do: true
+  
   
   
 end

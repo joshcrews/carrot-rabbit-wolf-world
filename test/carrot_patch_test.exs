@@ -8,14 +8,19 @@ defmodule CarrotPatchTest do
   end
 
   test "render graphics", context do
-    empty = %{has_carrots: false, occupant: nil}
+    empty = %{has_carrots: false, occupants: []}
     assert CarrotPatch.to_screen(empty) == " "
 
-    carrots = %{has_carrots: true, occupant: nil}
+    carrots = %{has_carrots: true, occupants: []}
     assert CarrotPatch.to_screen(carrots) == "."
 
-    rabbits = %{has_carrots: true, occupant: 1}
+    rabbit = {1, :rabbit}
+    rabbits = %{has_carrots: true, occupants: [rabbit]}
     assert CarrotPatch.to_screen(rabbits) == "R"
+
+    wolf = {1, :wolf}
+    wolves = %{has_carrots: true, occupants: [wolf]}
+    assert CarrotPatch.to_screen(wolves) == "W"
   end
 
   test "knows coordinates", context do
@@ -40,6 +45,22 @@ defmodule CarrotPatchTest do
 
     assert new_state.has_carrots == false
     assert reply == false
+  end
+
+  test "wolf eats a rabbit" do
+    CarrotWorldServer.start(%{board_size: 1})
+
+    {:ok, rabbit} = Rabbit.start(%{x: 0, y: 0}, board_size: 1)
+    rabbit_tuple = {rabbit, :rabbit}
+
+    rabbits = [rabbit_tuple]
+
+    carrot_patch = %CarrotPatch{occupants: rabbits}
+
+    {reply, new_state} = CarrotPatch.do_eat_rabbits(carrot_patch)
+
+    assert reply == true
+    assert new_state.occupants == []
   end
 
 

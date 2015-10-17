@@ -4,7 +4,8 @@ defmodule CarrotWorldServer do
   use GenServer
 
   @world_tick 100
-  @rabbit_spawn_tick 1000
+  @rabbit_spawn_tick 2000
+  @wolf_spawn_tick 4000
 
   def start(%{board_size: board_size}) do
     GenServer.start_link(CarrotWorldServer, {:board_size, board_size}, name: :carrot_world_server)
@@ -19,6 +20,7 @@ defmodule CarrotWorldServer do
     {:ok, :carrot_world_server} = start_in_production
     :timer.send_interval(@world_tick, :carrot_world_server, :world_tick)
     :timer.send_interval(@rabbit_spawn_tick, :carrot_world_server, :rabbit_spawn_tick)
+    :timer.send_interval(@wolf_spawn_tick, :carrot_world_server, :wolf_spawn_tick)
   end
   
 
@@ -34,27 +36,29 @@ defmodule CarrotWorldServer do
     GenServer.call(:carrot_world_server, {:get_patch_at, %{x: x, y: y}})
   end
 
-  def move_rabbit(rabbit, {old_coordinates, new_coordinates}) do
-    new_patch = carrot_patch_at(new_coordinates)
-    old_patch = carrot_patch_at(old_coordinates)
-    
-    CarrotPatch.occupant_arrived({new_patch, rabbit})
-    CarrotPatch.occupant_left({old_patch, rabbit})
+  def move_animal(animal, {old_coordinates, new_coordinates}) do
+    move_animal(animal, new_coordinates)
+    remove_animal(animal, old_coordinates)
   end
 
-  def move_rabbit(rabbit, new_coordinates) do
-    new_patch = carrot_patch_at(new_coordinates)
-    CarrotPatch.occupant_arrived({new_patch, rabbit})
+  def move_animal(animal, coordinates) do
+    patch = carrot_patch_at(coordinates)
+    CarrotPatch.occupant_arrived({patch, animal})
   end  
 
-  def remove_rabbit(rabbit, coordinates) do
+  def remove_animal(animal, coordinates) do
     patch = carrot_patch_at(coordinates)
-    CarrotPatch.occupant_left({patch, rabbit})
+    CarrotPatch.occupant_left({patch, animal})
   end  
 
   def rabbit_eat_carrots(rabbit, coordinates) do
     patch_to_eat = carrot_patch_at(coordinates)
     {:ok, got_some_carrots} = CarrotPatch.eat_carrots(patch_to_eat)
+  end
+
+  def wolf_eat_rabbits(wolf, coordinates) do
+    patch = carrot_patch_at(coordinates)
+    {:ok, got_some_rabbits} = CarrotPatch.eat_rabbits(patch)
   end
   
   
@@ -90,15 +94,16 @@ defmodule CarrotWorldServer do
   end
 
   def handle_info(:rabbit_spawn_tick, state = %{board: board}) do
-    dice_roll = :random.uniform(100)
-
-    if dice_roll > 50 do
-      board_size = length(board)
-      spawn_rabbit(board_size)
-    end
-
+    board_size = length(board)
+    spawn_rabbit(board_size)
     {:noreply, state}
   end  
+
+  def handle_info(:wolf_spawn_tick, state = %{board: board}) do
+    board_size = length(board)
+    spawn_wolf(board_size)
+    {:noreply, state}
+  end
 
   def spawn_rabbit(board_size) do
     x = [0,board_size - 1] |> Enum.shuffle |> List.first
@@ -107,6 +112,15 @@ defmodule CarrotWorldServer do
     coordinates = %{x: x, y: y}
 
     Rabbit.start(coordinates, board_size: board_size)
+  end
+
+  def spawn_wolf(board_size) do
+    y = [0,board_size - 1] |> Enum.shuffle |> List.first
+    x = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
+    
+    coordinates = %{x: x, y: y}
+
+    Wolf.start(coordinates, board_size: board_size)
   end
 
   
