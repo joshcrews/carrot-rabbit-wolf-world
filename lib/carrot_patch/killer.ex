@@ -1,5 +1,5 @@
 defmodule CarrotPatch.Killer do
-  @carrot_life_span 35
+  @carrot_life_span 50
 
   def age_existing_and_kill_carrots(state) do
     state
