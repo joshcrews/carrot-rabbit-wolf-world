@@ -106,4 +106,8 @@ defmodule Wolf do
     CarrotWorldServer.move_animal({self, :wolf}, {old_coordinates, new_coordinates})
   end
 
+  def best_three_next_moves(coordinates_list) do
+    Enum.slice(coordinates_list, 0, 3)
+  end
+
 end
