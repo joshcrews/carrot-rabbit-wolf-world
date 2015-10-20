@@ -9,8 +9,6 @@ defmodule Wolf do
   @rabbits_in_belly_before_reproduce 5
   @day_can_live_without_rabbits 50
 
-  # Dies after 10 rounds with no carrots
-
   def start(starting_coordinates, board_size: board_size) do
     {:ok, pid} = GenServer.start_link(Wolf, %{current_coordinates: starting_coordinates, board_size: board_size})
     :timer.send_interval(@move_tick_interval, pid, :move_tick)
@@ -44,13 +42,6 @@ defmodule Wolf do
 
   def terminate(:normal, state) do
     CarrotWorldServer.remove_animal({self, :wolf}, state.current_coordinates)
-    :ok
-  end
-
-  def terminate(reason, state) do
-    IO.puts "terminated Wolf"
-    IO.inspect reason
-    IO.inspect state
     :ok
   end
   
@@ -90,7 +81,7 @@ defmodule Wolf do
   end
 
   def try_to_eat_rabbits(state) do
-    {:ok, rabbits_found} = CarrotWorldServer.wolf_eat_rabbits(self, state.current_coordinates)
+    {:ok, rabbits_found} = CarrotWorldServer.wolf_eat_rabbit(state.current_coordinates)
     cond do
       rabbits_found -> eat_rabbits(state)
       :else -> state
@@ -115,9 +106,4 @@ defmodule Wolf do
     CarrotWorldServer.move_animal({self, :wolf}, {old_coordinates, new_coordinates})
   end
 
-
-
-  
-  
-  
 end

@@ -30,9 +30,9 @@ defmodule WolfTest do
   end
 
   test "ages and dies" do
-    wolf = %Wolf{days_since_last_rabbits: 10, alive: true}
+    wolf = %Wolf{days_since_last_rabbits: 50, alive: true}
     new_wolf = Wolf.age(wolf) |> Wolf.die
-    assert new_wolf == %Wolf{alive: false, days_since_last_rabbits: 11}
+    assert new_wolf == %Wolf{alive: false, days_since_last_rabbits: 51}
   end
 
 end

@@ -1,30 +1,109 @@
 defmodule CarrotWorldTest do
   use ExUnit.Case
   
-  test "replace_at" do
-    start_grid = [
-      ["0","0","0"],
-      ["0","0","0"],
-      ["0","0","0"],
-    ]
-    new_grid = CarrotWorld.replace_at(start_grid, %{x: 2, y: 2}, "1")
+  setup do
+    %CarrotWorld{board: simple_board} = CarrotWorld.build_initial_world({:board_size, 2})
 
-    correct_grid = [
-      ["0","0","0"],
-      ["0","0","0"],
-      ["0","0","1"],
-    ]
+    first_row = [[{1, :rabbit}, {1, :wolf}, {1, :rabbit}, {1, :carrots}], [{1, :rabbit}, {1, :rabbit}, {1, :carrots}]]
+    second_row = [[{1, :carrots}], [{1, :no_carrots}]]
 
-    assert new_grid == correct_grid
+    complex_board = List.replace_at(simple_board, 0, first_row) |> List.replace_at(1, second_row)
+
+    {:ok, [complex_board: complex_board, simple_board: simple_board]}
   end
 
-  test "find_at" do
-    carrot_patch = 15
-    carrot_patches = [[carrot_patch, 0], [0, 0]]
-    coordinates = %{x: 0, y: 0}
-    found_carrot_patch = CarrotWorld.find_at(carrot_patches, coordinates)
+  test "build_initial_world" do
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world({:board_size, 2})
 
-    assert found_carrot_patch == carrot_patch
+    assert length(board) == 2
+    assert length(List.first(board)) == 2
+
+    status_grid = Enum.map(board, fn(row) -> 
+      Enum.map(row, fn(elem) -> 
+        [{_, status}] = elem
+        status
+       end) 
+    end)
+    
+
+    assert status_grid == [[:no_carrots, :no_carrots], [:no_carrots, :no_carrots]]
   end
+
+  test "print_board (blank)" do
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world({:board_size, 2})
+    graphical_board = CarrotWorld.board_to_graphics(board)
+
+    assert graphical_board == [[" ", " "], [" ", " "]]
+  end
+
+  test "print_board (multiple occupants)", context do
+    carrot_board = context[:complex_board]
+
+    graphical_board = CarrotWorld.board_to_graphics(carrot_board)
+
+    assert graphical_board == [["W", "+"], [".", " "]]
+  end
+
+  test "update carrot status with replace_at", context do
+    graphical_board = context[:complex_board]
+    |> CarrotWorld.replace_at(%{x: 1, y: 1}, :carrots)
+    |> CarrotWorld.replace_at(%{x: 0, y: 1}, :no_carrots)
+    |> CarrotWorld.board_to_graphics
+
+    assert graphical_board == [["W", "+"], [".", "."]]
+  end
+
+  test "update animal position with move and remove", context do
+    {:ok, wolf} = GenServer.start_link(Wolf, %{current_coordinates: %{x: 1, y: 1}, board_size: 2})
+
+    wolf_tuple = {wolf, :wolf}
+
+    board = context[:complex_board]
+    |> CarrotWorld.move_animal(wolf_tuple, %{x: 1, y: 1})
+
+    graphical_board = CarrotWorld.board_to_graphics(board)
+
+    assert graphical_board == [["W", "+"], [".", "W"]]
+
+    graphical_board = board |> CarrotWorld.remove_animal(wolf_tuple, %{x: 1, y: 1}) |> CarrotWorld.board_to_graphics
+
+    assert graphical_board == [["W", "+"], [".", " "]]
+  end
+
+  test "find carrot patch with coordinates", context do
+    patch = CarrotWorld.get_patch_at(context[:simple_board], %{x: 0, y: 0})
+    assert Process.alive?(patch)
+  end
+
+  test "wolf eats rabbits", context do
+    {:ok, wolf} = GenServer.start_link(Wolf, %{current_coordinates: %{x: 1, y: 1}, board_size: 2})
+    {:ok, rabbit} = GenServer.start_link(Rabbit, %{current_coordinates: %{x: 1, y: 1}, board_size: 2})
+
+    wolf_tuple = {wolf, :wolf}
+    rabbit_tuple = {rabbit, :rabbit}
+
+    board = context[:simple_board]
+    |> CarrotWorld.move_animal(wolf_tuple, %{x: 1, y: 1})
+    |> CarrotWorld.move_animal(rabbit_tuple, %{x: 1, y: 1})
+
+    graphical_board = CarrotWorld.board_to_graphics(board)
+
+    assert graphical_board == [[" ", " "], [" ", "W"]]
+
+    {reply, board} = board |> CarrotWorld.wolf_eat_rabbit(%{x: 1, y: 1})
+
+    graphical_board = CarrotWorld.board_to_graphics(board)
+
+    assert reply == {:ok, true}
+    assert graphical_board == [[" ", " "], [" ", "W"]]
+
+    #
+    # to let the rabbit process die
+    #
+    :timer.sleep(100)
+
+    assert Process.alive?(rabbit) == false    
+  end
+
   
 end

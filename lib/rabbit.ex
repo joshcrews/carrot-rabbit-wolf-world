@@ -5,7 +5,7 @@ defmodule Rabbit do
   defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive]
 
   @move_tick_interval 500
-  @carrots_in_belly_before_reproduce 5
+  @carrots_in_belly_before_reproduce 1
   @day_can_live_without_carrots 10
 
   # Dies after 10 rounds with no carrots
@@ -49,15 +49,7 @@ defmodule Rabbit do
     {:reply, reply, state}
   end
 
-  def terminate(:normal, state) do
-    CarrotWorldServer.remove_animal({self, :rabbit}, state.current_coordinates)
-    :ok
-  end
-
-  def terminate(reason, state) do
-    IO.puts "terminated Rabbit"
-    IO.inspect reason
-    IO.inspect state
+  def terminate(:normal, _) do
     :ok
   end
   
@@ -97,7 +89,7 @@ defmodule Rabbit do
   end
 
   def try_to_eat_carrots(state) do
-    {:ok, carrots_found} = CarrotWorldServer.rabbit_eat_carrots(self, state.current_coordinates)
+    {:ok, carrots_found} = CarrotWorldServer.rabbit_eat_carrots(state.current_coordinates)
     cond do
       carrots_found -> eat_carrots(state)
       :else -> state
@@ -121,10 +113,5 @@ defmodule Rabbit do
   def enter_and_leave({old_coordinates, new_coordinates}) do
     CarrotWorldServer.move_animal({self, :rabbit}, {old_coordinates, new_coordinates})
   end
-
-  
-
-  
-  
   
 end

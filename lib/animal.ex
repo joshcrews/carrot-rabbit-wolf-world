@@ -6,10 +6,6 @@ defmodule Animal do
       |> List.first
   end
 
-  defp carrot_patch_finder do
-    CarrotWorldServer
-  end
-
   def valid_neighbor_patches(state) do
     board_size = state.board_size
     all_theoritical_neighboring_coordinates(state)
