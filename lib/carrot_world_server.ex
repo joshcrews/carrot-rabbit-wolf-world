@@ -19,8 +19,8 @@ defmodule CarrotWorldServer do
   def sip do
     {:ok, :carrot_world_server} = start_in_production
     :timer.send_interval(@world_tick, :carrot_world_server, :world_tick)
-    :timer.send_interval(@rabbit_spawn_tick, :carrot_world_server, :rabbit_spawn_tick)
-    :timer.send_interval(@wolf_spawn_tick, :carrot_world_server, :wolf_spawn_tick)
+    # :timer.send_interval(@rabbit_spawn_tick, :carrot_world_server, :rabbit_spawn_tick)
+    # :timer.send_interval(@wolf_spawn_tick, :carrot_world_server, :wolf_spawn_tick)
   end
   
 
@@ -66,6 +66,8 @@ defmodule CarrotWorldServer do
 
   def init({:board_size, board_size}) do
     state = CarrotWorld.build_initial_world({:board_size, board_size})
+    spawn_wolf(board_size)
+    spawn_rabbit(board_size)
     {:ok, state}
   end
 
@@ -106,19 +108,21 @@ defmodule CarrotWorldServer do
   end
 
   def spawn_rabbit(board_size) do
-    x = [0,board_size - 1] |> Enum.shuffle |> List.first
-    y = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
+    # x = [0,board_size - 1] |> Enum.shuffle |> List.first
+    # y = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
     
-    coordinates = %{x: x, y: y}
+    coordinates = %{x: 6, y: 6}
 
     Rabbit.start(coordinates, board_size: board_size)
   end
 
   def spawn_wolf(board_size) do
-    y = [0,board_size - 1] |> Enum.shuffle |> List.first
-    x = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
+    # x = [0,board_size - 1] |> Enum.shuffle |> List.first
+    # y = (0 .. board_size - 1) |> Enum.to_list |> Enum.shuffle |> List.first
+
+
     
-    coordinates = %{x: x, y: y}
+    coordinates = %{x: 0, y: 0}
 
     Wolf.start(coordinates, board_size: board_size)
   end

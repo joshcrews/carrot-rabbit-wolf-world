@@ -7,7 +7,7 @@ defmodule Wolf do
 
   @move_tick_interval 500
   @rabbits_in_belly_before_reproduce 5
-  @day_can_live_without_rabbits 10
+  @day_can_live_without_rabbits 50
 
   # Dies after 10 rounds with no carrots
 

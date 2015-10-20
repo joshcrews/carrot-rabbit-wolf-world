@@ -13,7 +13,7 @@ defmodule CarrotPatch do
   @update_world_interval 1000
   @carrot_growth_points_required 100
   @carrot_graphic "."
-  @rabbit_graphic "R"
+  @rabbit_graphic "+"
   @wolf_graphic "W"
 
   def start(%{x: x, y: y, board_size: board_size}) do
