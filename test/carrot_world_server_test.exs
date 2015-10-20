@@ -13,5 +13,9 @@ defmodule CarrotWorldServerTest do
     assert response == :ok 
   end
 
+  test "meterize(int)" do
+    assert CarrotWorldServer.meterize(20) == "||"
+  end
+
 
 end

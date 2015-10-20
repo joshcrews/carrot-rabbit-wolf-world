@@ -86,15 +86,27 @@ defmodule CarrotWorldServer do
 
   def handle_info(:world_tick, state = %{board: board}) do
     %{wolf_count: wolf_count, rabbit_count: rabbit_count, carrot_count: carrot_count} = CarrotWorld.counts(board)
+
+    wolf_meter = meterize(wolf_count)
+    rabbit_meter = meterize(rabbit_count)
+    carrot_meter = meterize(carrot_count)
+
     CarrotWorld.board_to_graphics(board)
     |> Enum.each(fn(row) -> IO.puts(Enum.join(row, " ")) end)
     
     IO.puts ""
     IO.puts ""
-    IO.puts "Wolf:    #{wolf_count}"
-    IO.puts "Rabbits: #{rabbit_count}"
-    IO.puts "Carrots: #{carrot_count}"
+    IO.puts "Wolf:    #{wolf_count} #{wolf_meter}"
+    IO.puts "Rabbits: #{rabbit_count} #{rabbit_meter}"
+    IO.puts "Carrots: #{carrot_count} #{carrot_meter}"
     {:noreply, state}
+  end
+
+  def meterize(integer) do
+    meter_length = Enum.max([div(integer, 10) - 1, 0])
+    Enum.to_list(0..meter_length)
+    |> Enum.map(fn(_) -> "|" end)
+    |> Enum.join
   end
 
   def spawn_rabbit(board_size) do
