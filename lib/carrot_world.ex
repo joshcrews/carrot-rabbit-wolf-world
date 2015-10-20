@@ -91,8 +91,28 @@ defmodule CarrotWorld do
     replace_occupants(board, new_occupants, coordinates)
   end
 
+  def counts(board) do
+    wolf_count = status_list(board) |> Enum.count(fn(x) -> x == :wolf end)
+    rabbit_count = status_list(board) |> Enum.count(fn(x) -> x == :rabbit end)
+    carrot_count = status_list(board) |> Enum.count(fn(x) -> x == :carrots end)
+
+    %{wolf_count: wolf_count, rabbit_count: rabbit_count, carrot_count: carrot_count}
+  end
+
 
   # ========= Private Functions
+
+  def status_map(board) do
+    Enum.map(board, fn(row) -> 
+      Enum.map(row, fn(occupants) -> 
+        Enum.map(occupants, fn({_, status}) -> status end)
+      end)
+    end)
+  end
+
+  defp status_list(grid) do
+    List.flatten(status_map(grid))
+  end
 
   defp replace_occupants(board, new_occupants, %{x: x, y: y}) do
     row = Enum.at(board, x)

@@ -85,11 +85,15 @@ defmodule CarrotWorldServer do
   end
 
   def handle_info(:world_tick, state = %{board: board}) do
+    %{wolf_count: wolf_count, rabbit_count: rabbit_count, carrot_count: carrot_count} = CarrotWorld.counts(board)
     CarrotWorld.board_to_graphics(board)
     |> Enum.each(fn(row) -> IO.puts(Enum.join(row, " ")) end)
     
     IO.puts ""
     IO.puts ""
+    IO.puts "Wolf:    #{wolf_count}"
+    IO.puts "Rabbits: #{rabbit_count}"
+    IO.puts "Carrots: #{carrot_count}"
     {:noreply, state}
   end
 

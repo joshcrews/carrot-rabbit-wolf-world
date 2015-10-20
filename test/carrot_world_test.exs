@@ -105,5 +105,13 @@ defmodule CarrotWorldTest do
     assert Process.alive?(rabbit) == false    
   end
 
+  test "animal and carrot counts", context do
+    %{wolf_count: wolf_count, rabbit_count: rabbit_count, carrot_count: carrot_count} = CarrotWorld.counts(context[:complex_board])
+    
+    assert wolf_count == 1
+    assert rabbit_count == 4
+    assert carrot_count == 3
+  end
+
   
 end
