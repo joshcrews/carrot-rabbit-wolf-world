@@ -38,4 +38,9 @@ carrot_patch.ex
 @carrot_growth_points_required 100
 ````
 
+#### Change the board size
 
+In `iex -S mix` run
+`CarrotWorldServer.start(%{board_size: 30})`
+
+And you can set the board size
