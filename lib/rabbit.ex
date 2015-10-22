@@ -1,17 +1,17 @@
 defmodule Rabbit do
   import Animal
-  # use GenServer
+  use GenServer
 
-  defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive]
+  defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive, :local_board]
 
   @move_tick_interval 500
-  @carrots_in_belly_before_reproduce 1
+  @carrots_in_belly_before_reproduce 5
   @day_can_live_without_carrots 10
 
   # Dies after 10 rounds with no carrots
 
-  def start(starting_coordinates, board_size: board_size) do
-    {:ok, pid} = GenServer.start_link(Rabbit, %{current_coordinates: starting_coordinates, board_size: board_size})
+  def start(state) do
+    {:ok, pid} = GenServer.start_link(Rabbit, state)
     :timer.send_interval(@move_tick_interval, pid, :move_tick)
     {:ok, pid}
   end
@@ -27,7 +27,8 @@ defmodule Rabbit do
   # =============== Server Callbacks
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
-    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0, days_since_last_carrots: 0, alive: true}}
+    local_board = empty_local_board
+    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0, days_since_last_carrots: 0, alive: true, local_board: local_board}}
   end
 
   def handle_info(:move_tick, state) do
@@ -49,7 +50,18 @@ defmodule Rabbit do
     {:reply, reply, state}
   end
 
+  def handle_cast({:new_local_board, %{local_board: local_board}}, state) do
+    new_state = %{state | local_board: local_board}
+    {:noreply, new_state}
+  end
+
   def terminate(:normal, _) do
+    :ok
+  end
+
+  def terminate(reason, state) do
+    IO.inspect reason
+    IO.inspect state
     :ok
   end
   
@@ -80,8 +92,7 @@ defmodule Rabbit do
   def make_babies(state) do
     cond do
      state.carrots_in_belly > @carrots_in_belly_before_reproduce ->
-      starting_coordinates = state.current_coordinates
-      Rabbit.start(starting_coordinates, board_size: state.board_size)
+      Rabbit.start(%{current_coordinates: state.current_coordinates, board_size: state.board_size})
       %Rabbit{state | carrots_in_belly: 0}
     :else ->
       state
@@ -114,8 +125,43 @@ defmodule Rabbit do
     CarrotWorldServer.move_animal({self, :rabbit}, {old_coordinates, new_coordinates})
   end
 
-  def best_three_next_moves(coordinates_list) do
-    Enum.slice(coordinates_list, 0, 3)
+  def next_coordinates(state) do
+    scored_possible_next_coordinates(state)
+    |> Enum.shuffle
+    |> sort_by_score
+    |> Enum.slice(0, 3)
+    |> Enum.shuffle
+    |> List.first
+    |> Map.delete(:score)
+  end
+
+  def scored_possible_next_coordinates(state = %{local_board: local_board, board_size: board_size}) do
+    all_theoritical_neighboring_coordinates(state)
+    |> add_score
+    |> increase_score_for_carrots(local_board)
+    |> decrease_score_for_off_the_board(board_size)
+  end
+
+  def increase_score_for_carrots(coordinates_grid, local_board) do
+    Enum.with_index(coordinates_grid)
+    |>  Enum.map(fn({row, row_index}) ->
+          Enum.with_index(row) |> Enum.map(fn({coordinates_map, column_index}) ->
+
+            carrots_present = Enum.at(local_board, row_index) 
+            |> Enum.at(column_index)
+            |> Enum.filter(fn({_, status}) -> (status == :carrots) end)
+            |> length == 1
+
+            cond do
+              carrots_present -> 
+                score = coordinates_map.score
+                %{coordinates_map | score: score + 10}
+              :else ->
+                coordinates_map
+            end
+            
+          end)
+        end)
   end
   
 end

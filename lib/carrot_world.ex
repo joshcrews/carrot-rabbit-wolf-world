@@ -1,19 +1,19 @@
 require IEx
 defmodule CarrotWorld do
 
-  defstruct [:board]
+  defstruct [:board, :board_size]
 
   @carrot_graphic "."
   @rabbit_graphic "+"
   @wolf_graphic "W"
 
-  def build_initial_world({:board_size, board_size}) do
-    carrot_patches = spawn_carrot_patches({:board_size, board_size})
+  def build_initial_world(%{board_size: board_size}) do
+    carrot_patches = spawn_carrot_patches(%{board_size: board_size})
 
     board = carrot_patches
     |> Enum.map(fn(row) -> Enum.map(row, fn(occupant) -> [occupant] end) end)
 
-    %CarrotWorld{board: board}
+    %CarrotWorld{board: board, board_size: board_size}
   end
 
   def board_to_graphics(board) do
@@ -99,14 +99,39 @@ defmodule CarrotWorld do
     %{wolf_count: wolf_count, rabbit_count: rabbit_count, carrot_count: carrot_count}
   end
 
-
-  # ========= Private Functions
-
   def status_map(board) do
     Enum.map(board, fn(row) -> 
       Enum.map(row, fn(occupants) -> 
         Enum.map(occupants, fn({_, status}) -> status end)
       end)
+    end)
+  end
+
+  def build_local_board_for(%{coordinates: %{x: x, y: y}, board: board}) do
+    xs = [x - 1, x, x + 1] |> only_positives
+    ys = [y - 1, y, y + 1] |> only_positives
+
+    Enum.map(xs, fn(x) -> 
+      Enum.map(ys, fn(y) ->
+        occupants = Enum.at(board, x, []) |> Enum.at(y, :none)
+        cond do
+          occupants == :none -> []
+          occupants == nil -> []
+          :else -> occupants
+        end
+      end)
+    end)
+  end
+
+
+  # ========= Private Functions
+
+  defp only_positives(list) do
+    Enum.map(list, fn(x) ->
+      cond do
+        x < 0 -> 999999
+        :else -> x
+      end
     end)
   end
 
@@ -134,7 +159,7 @@ defmodule CarrotWorld do
     end
   end
 
-  def spawn_carrot_patches({:board_size, board_size}) do
+  def spawn_carrot_patches(%{board_size: board_size}) do
     board_size_less_one = board_size - 1
     Enum.to_list(0..board_size_less_one)
     |> Enum.map(fn(x) -> 

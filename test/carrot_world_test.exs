@@ -2,7 +2,7 @@ defmodule CarrotWorldTest do
   use ExUnit.Case
   
   setup do
-    %CarrotWorld{board: simple_board} = CarrotWorld.build_initial_world({:board_size, 2})
+    %CarrotWorld{board: simple_board} = CarrotWorld.build_initial_world(%{board_size: 2})
 
     first_row = [[{1, :rabbit}, {1, :wolf}, {1, :rabbit}, {1, :carrots}], [{1, :rabbit}, {1, :rabbit}, {1, :carrots}]]
     second_row = [[{1, :carrots}], [{1, :no_carrots}]]
@@ -13,7 +13,7 @@ defmodule CarrotWorldTest do
   end
 
   test "build_initial_world" do
-    %CarrotWorld{board: board} = CarrotWorld.build_initial_world({:board_size, 2})
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 2})
 
     assert length(board) == 2
     assert length(List.first(board)) == 2
@@ -30,7 +30,7 @@ defmodule CarrotWorldTest do
   end
 
   test "print_board (blank)" do
-    %CarrotWorld{board: board} = CarrotWorld.build_initial_world({:board_size, 2})
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 2})
     graphical_board = CarrotWorld.board_to_graphics(board)
 
     assert graphical_board == [[" ", " "], [" ", " "]]
@@ -111,6 +111,20 @@ defmodule CarrotWorldTest do
     assert wolf_count == 1
     assert rabbit_count == 4
     assert carrot_count == 3
+  end
+
+  test "build_local_board_for" do
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 5})
+
+    coordinates = %{x: 1, y: 1}
+    local_board = CarrotWorld.build_local_board_for(%{coordinates: coordinates, board: board})
+
+    assert length(local_board) == 3
+
+    coordinates = %{x: 0, y: 0}
+    local_board = CarrotWorld.build_local_board_for(%{coordinates: coordinates, board: board})
+
+    assert length(local_board) == 3
   end
 
   

@@ -4,8 +4,9 @@ defmodule WolfTest do
   use ExUnit.Case
 
   setup do
-    CarrotWorldServer.start(%{board_size: 10})
-    {:ok, wolf} = Wolf.start(%{x: 0, y: 0}, board_size: 10)
+    board_size = 10
+    CarrotWorldServer.start(%{board_size: board_size})
+    {:ok, wolf} = Wolf.start(%{current_coordinates: %{x: 0, y: 0}, board_size: board_size})
     {:ok, [wolf: wolf]}
   end
 

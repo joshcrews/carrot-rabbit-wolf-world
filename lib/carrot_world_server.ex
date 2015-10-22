@@ -6,7 +6,7 @@ defmodule CarrotWorldServer do
   @world_tick 100
 
   def start(%{board_size: board_size}) do
-    GenServer.start_link(CarrotWorldServer, {:board_size, board_size}, name: :carrot_world_server)
+    GenServer.start_link(CarrotWorldServer, %{board_size: board_size}, name: :carrot_world_server)
     {:ok, :carrot_world_server}
   end
 
@@ -48,10 +48,10 @@ defmodule CarrotWorldServer do
   
   # ===============
 
-  def init({:board_size, board_size}) do
-    state = CarrotWorld.build_initial_world({:board_size, board_size})
-    spawn_wolf(board_size)
-    spawn_rabbit(board_size)
+  def init(%{board_size: board_size}) do
+    state = CarrotWorld.build_initial_world(%{board_size: board_size})
+    spawn_wolf(state)
+    spawn_rabbit(state)
     {:ok, state}
   end
 
@@ -75,7 +75,15 @@ defmodule CarrotWorldServer do
   def handle_cast({:move_animal, animal, coordinates}, state = %{board: board}) do
     new_board = CarrotWorld.move_animal(board, animal, coordinates)
     new_state = %CarrotWorld{state | board: new_board}
+
+    send_local_board_to_animal(animal, coordinates, new_board)
+
     {:noreply, new_state}
+  end
+
+  def send_local_board_to_animal({pid, _}, coordinates, board) do
+    local_board_for_animal = CarrotWorld.build_local_board_for(%{coordinates: coordinates, board: board})
+    GenServer.cast(pid, {:new_local_board, %{local_board: local_board_for_animal}})
   end
 
   def handle_cast({:remove_animal, animal, coordinates}, state = %{board: board}) do
@@ -109,16 +117,14 @@ defmodule CarrotWorldServer do
     |> Enum.join
   end
 
-  def spawn_rabbit(board_size) do
+  def spawn_rabbit(%{board_size: board_size}) do
     coordinates = %{x: 6, y: 6}
-
-    Rabbit.start(coordinates, board_size: board_size)
+    Rabbit.start(%{current_coordinates: coordinates, board_size: board_size})
   end
 
-  def spawn_wolf(board_size) do
+  def spawn_wolf(%{board_size: board_size}) do
     coordinates = %{x: 0, y: 0}
-
-    Wolf.start(coordinates, board_size: board_size)
+    Wolf.start(%{current_coordinates: coordinates, board_size: board_size})
   end
 
   

@@ -4,9 +4,9 @@ defmodule CarrotPatch do
   import CarrotPatch.Grower
   import CarrotPatch.Killer
 
-  # use GenServer
+  use GenServer
 
-  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :occupants, :board_size]
+  defstruct [:has_carrots, :x, :y, :carrot_growth_points, :carrot_age, :board_size]
 
   @emoji_number 127823
   @grow_tick_interval 500
