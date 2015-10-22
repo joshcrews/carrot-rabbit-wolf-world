@@ -32,6 +32,7 @@ defmodule Wolf do
       new_state.alive ->
         {:noreply, new_state}
       :else ->
+        CarrotWorldServer.remove_animal({self, :wolf}, new_state.current_coordinates)
         {:stop, :normal, new_state}
     end
   end
