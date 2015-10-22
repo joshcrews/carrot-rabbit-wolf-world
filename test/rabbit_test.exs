@@ -38,22 +38,22 @@ defmodule RabbitTest do
 
   test "prefers moving towards carrots" do
     local_board = [
-      [[{1,    :carrots}], [{1, :no_carrots}], [{1,    :carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[:carrots]   , [:no_carrots], [:carrots]   , [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
+      [[:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots], [:no_carrots]],
     ]
 
-    rabbit = %Rabbit{local_board: local_board, current_coordinates: %{x: 1, y: 1}, what_i_eat: :carrots}
+    rabbit = %Rabbit{local_board: local_board, current_coordinates: %{x: 2, y: 2}, what_i_eat: :carrots}
 
-    expected_result = [[%{score: 2, x: 0, y: 0}, %{score: 1, x: 0, y: 1}, %{score: 0, x: 0, y: 2}],
-                       [%{score: 0, x: 1, y: 0}, %{score: 0, x: 1, y: 1}, %{score: 0, x: 1, y: 2}],
-                       [%{score: 0, x: 2, y: 0}, %{score: 0, x: 2, y: 1}, %{score: 0, x: 2, y: 2}]]
+    expected_result =  [ [%{name: 'NW', score: 2, x: 1, y: 1}, %{name: 'W', score: 0, x: 1, y: 2}, %{name: 'SW', score: 0, x: 1, y: 3}],
+                         [%{name: 'N', score: 1, x: 2, y: 1}, %{name: 'C', score: 0, x: 2, y: 2}, %{name: 'S', score: 0, x: 2, y: 3}],
+                         [%{name: 'NE', score: 0, x: 3, y: 1}, %{name: 'E', score: 0, x: 3, y: 2}, %{name: 'SE', score: 0, x: 3, y: 3}] ]
 
-   assert expected_result ==  Animal.scored_possible_next_coordinates(rabbit)
+   assert Animal.scored_possible_next_coordinates(rabbit) == expected_result
   end
 
 end

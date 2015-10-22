@@ -8,7 +8,10 @@ I listened to a couple different podcasts where Francesco Cesarini [talked about
 2. Rabbits travel around the board, eating carrots, and reproducing
 3. Wolves travel around eating rabbits and reproducing
 
-There may be more to the project, but that's where I've stopped.
+I don't know if this is part of the story, but I also have
+
+1. Rabbits move towards carrots nearby
+2. Wolves move towards rabbits nearby
 
 ## How to run
 
@@ -40,7 +43,5 @@ carrot_patch.ex
 
 #### Change the board size
 
-In `iex -S mix` run
-`CarrotWorldServer.start(%{board_size: 30})`
-
-And you can set the board size
+Look for `start_in_production`
+and you can set the board_size

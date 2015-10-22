@@ -64,19 +64,19 @@ defmodule Animal do
   def all_theoritical_neighboring_coordinates(%{current_coordinates: %{x: x, y: y}}) do
     [
       [
-        %{x: x - 1, y: y - 1},
-        %{x: x - 1, y: y},
-        %{x: x - 1, y: y + 1},
+        %{x: x - 1, y: y - 1, name: 'NW'},
+        %{x: x - 1, y: y, name: 'W'},
+        %{x: x - 1, y: y + 1, name: 'SW'},
       ],
       [
-        %{x: x, y: y - 1},
-        %{x: x, y: y},
-        %{x: x, y: y + 1},
+        %{x: x, y: y - 1, name: 'N'},
+        %{x: x, y: y, name: 'C'},
+        %{x: x, y: y + 1, name: 'S'},
       ],
       [
-        %{x: x + 1, y: y - 1},
-        %{x: x + 1, y: y},
-        %{x: x + 1, y: y + 1},
+        %{x: x + 1, y: y - 1, name: 'NE'},
+        %{x: x + 1, y: y, name: 'E'},
+        %{x: x + 1, y: y + 1, name: 'SE'},
       ]
     ]
   end
@@ -110,7 +110,7 @@ defmodule Animal do
     micro_local_board(local_board, row_index, column_index)
     |> List.flatten
     |> Enum.filter(fn(x) -> x != nil end)
-    |> Enum.count(fn({_, status}) -> (status == what_i_eat) end)
+    |> Enum.count(fn(status) -> (status == what_i_eat) end)
   end
 
   defp micro_local_board(local_board, row_index, column_index) do
@@ -125,7 +125,7 @@ defmodule Animal do
       end)
     |> List.flatten
     |> Enum.map(fn({r,c}) -> 
-        Enum.at(local_board, r) |> Enum.at(c) 
+        Enum.at(local_board, c) |> Enum.at(r) 
       end)
   end
 

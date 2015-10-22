@@ -50,7 +50,7 @@ defmodule CarrotWorldTest do
     |> CarrotWorld.replace_at(%{x: 0, y: 1}, :no_carrots)
     |> CarrotWorld.board_to_graphics
 
-    assert graphical_board == [["W", "+"], [".", "."]]
+    assert graphical_board == [["W", "+"], [" ", "."]]
   end
 
   test "update animal position with move and remove", context do
@@ -114,12 +114,44 @@ defmodule CarrotWorldTest do
   end
 
   test "build_local_board_for animal" do
-    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 5})
+    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 10})
 
-    coordinates = %{x: 1, y: 1}
-    local_board = CarrotWorld.build_local_board_for(:wolf, %{coordinates: coordinates, board: board})
+    wolf_coordinates = %{x: 5, y: 5}
+    rabbit_coordinates = %{x: 5, y: 3}
 
-    assert length(local_board) == 5
+    {:ok, wolf} = GenServer.start_link(Wolf, %{current_coordinates: wolf_coordinates, board_size: 10})
+    {:ok, rabbit} = GenServer.start_link(Rabbit, %{current_coordinates: rabbit_coordinates, board_size: 10})
+
+    wolf_tuple = {wolf, :wolf}
+    rabbit_tuple = {rabbit, :rabbit}
+
+    new_board = board
+    |> CarrotWorld.move_animal(wolf_tuple, wolf_coordinates)
+    |> CarrotWorld.move_animal(rabbit_tuple, rabbit_coordinates)
+
+
+    local_board = CarrotWorld.build_local_board_for(:wolf, %{coordinates: wolf_coordinates, board: new_board})
+    |> Enum.map(fn(row) -> 
+         Enum.map(row, fn(occupants) -> 
+            Enum.filter(occupants, fn(status) ->
+              status == :rabbit || status == :wolf
+            end)
+         end)
+       end)
+
+    assert length(local_board) == 7
+
+    expected_result = [
+                        [[], [], [], [], [], [], []], 
+                        [[], [], [], [:rabbit], [], [], []],
+                        [[], [], [], [], [], [], []],
+                        [[], [], [], [:wolf], [], [], []],
+                        [[], [], [], [], [], [], []],
+                        [[], [], [], [], [], [], []],
+                        [[], [], [], [], [], [], []]
+                      ]
+
+    assert local_board == expected_result
   end
 
   

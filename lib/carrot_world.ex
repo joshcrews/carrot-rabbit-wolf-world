@@ -108,20 +108,20 @@ defmodule CarrotWorld do
   end
 
   def build_local_board_for(_, %{coordinates: %{x: x, y: y}, board: board}) do
-    xs = [x - 2, x - 1, x, x + 1, x + 2] |> only_positives
-    ys = [y - 2, y - 1, y, y + 1, y + 2] |> only_positives
+    xs = [x - 3, x - 2, x - 1, x, x + 1, x + 2, x + 3] |> only_positives
+    ys = [y - 3, y - 2, y - 1, y, y + 1, y + 2, y + 3] |> only_positives
 
     build_local_board(%{xs: xs, ys: ys, board: board})
   end
 
   defp build_local_board(%{xs: xs, ys: ys, board: board}) do
-    Enum.map(xs, fn(x) -> 
-      Enum.map(ys, fn(y) ->
-        occupants = Enum.at(board, x, []) |> Enum.at(y, :none)
+    Enum.map(ys, fn(y) -> 
+      Enum.map(xs, fn(x) ->
+        occupants = Enum.at(board, y, []) |> Enum.at(x, :none)
         cond do
           occupants == :none -> []
           occupants == nil -> []
-          :else -> occupants
+          :else -> Enum.map(occupants, fn({_, status}) -> status end)
         end
       end)
     end)
@@ -144,13 +144,13 @@ defmodule CarrotWorld do
   end
 
   defp replace_occupants(board, new_occupants, %{x: x, y: y}) do
-    row = Enum.at(board, x)
-    new_row = List.replace_at(row, y, new_occupants)
-    List.replace_at(board, x, new_row) 
+    row = Enum.at(board, y)
+    new_row = List.replace_at(row, x, new_occupants)
+    List.replace_at(board, y, new_row) 
   end 
 
   defp occupants_at(board, %{x: x, y: y}) do
-    Enum.at(board, x) |> Enum.at(y)
+    Enum.at(board, y) |> Enum.at(x)
   end
 
   defp graphic_for_occupants(occupants) do
@@ -166,8 +166,8 @@ defmodule CarrotWorld do
   def spawn_carrot_patches(%{board_size: board_size}) do
     board_size_less_one = board_size - 1
     Enum.to_list(0..board_size_less_one)
-    |> Enum.map(fn(x) -> 
-      Enum.to_list(0..board_size_less_one) |> Enum.map(fn(y) -> 
+    |> Enum.map(fn(y) -> 
+      Enum.to_list(0..board_size_less_one) |> Enum.map(fn(x) -> 
         {:ok, carrot_patch} = CarrotPatch.start(%{x: x, y: y, board_size: board_size}) 
         {carrot_patch, :no_carrots}
       end)

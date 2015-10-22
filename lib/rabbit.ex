@@ -5,7 +5,7 @@ defmodule Rabbit do
   defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive, :local_board, :what_i_eat, :what_i_am]
 
   @move_tick_interval 500
-  @carrots_in_belly_before_reproduce 5
+  @carrots_in_belly_before_reproduce 1
   @day_can_live_without_carrots 10
 
   # Dies after 10 rounds with no carrots
