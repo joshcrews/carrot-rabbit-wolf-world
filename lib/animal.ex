@@ -1,5 +1,7 @@
 defmodule Animal do
 
+  @local_board_size 7
+
   def move_patches(state) do
     next_coordinates = next_coordinates(state)
 
@@ -130,35 +132,17 @@ defmodule Animal do
   end
 
   defp nine_squares(row_index, column_index) do
-    [
-      [
-        {row_index - 1, column_index - 1},
-        {row_index - 1, column_index},
-        {row_index - 1, column_index + 1}
-      ],
-      [
-        {row_index, column_index - 1},
-        {row_index, column_index},
-        {row_index, column_index + 1}
-      ],
-      [
-        {row_index + 1, column_index - 1},
-        {row_index + 1, column_index},
-        {row_index + 1, column_index + 1}
-      ]
-    ]
+
+    for i <- (row_index - 1..row_index + 1) do
+      for j <- (column_index - 1..column_index + 1), do: {i,j}
+    end
+        
   end
 
   def empty_local_board do
-    [
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-      [[], [], [], [], [], [], []],
-    ]
+    for i <- (1..@local_board_size) do
+      for j <- (1..@local_board_size), do: []
+    end
   end
   
 end
