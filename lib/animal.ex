@@ -1,13 +1,5 @@
 defmodule Animal do
 
-  def empty_local_board do
-    [
-      [[], [], []],
-      [[], [], []],
-      [[], [], []],
-    ]
-  end
-
   def add_score(coordinates_grid) do
     Enum.map(coordinates_grid, fn(row) ->
       Enum.map(row, fn(coordinates_map) ->

@@ -81,8 +81,13 @@ defmodule CarrotWorldServer do
     {:noreply, new_state}
   end
 
-  def send_local_board_to_animal({pid, _}, coordinates, board) do
-    local_board_for_animal = CarrotWorld.build_local_board_for(%{coordinates: coordinates, board: board})
+  def send_local_board_to_animal({pid, :rabbit}, coordinates, board) do
+    local_board_for_animal = CarrotWorld.build_local_board_for(:rabbit, %{coordinates: coordinates, board: board})
+    GenServer.cast(pid, {:new_local_board, %{local_board: local_board_for_animal}})
+  end
+
+  def send_local_board_to_animal({pid, :wolf}, coordinates, board) do
+    local_board_for_animal = CarrotWorld.build_local_board_for(:wolf, %{coordinates: coordinates, board: board})
     GenServer.cast(pid, {:new_local_board, %{local_board: local_board_for_animal}})
   end
 

@@ -164,5 +164,13 @@ defmodule Rabbit do
           end)
         end)
   end
+
+  def empty_local_board do
+    [
+      [[], [], []],
+      [[], [], []],
+      [[], [], []],
+    ]
+  end
   
 end

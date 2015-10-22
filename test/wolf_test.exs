@@ -36,4 +36,24 @@ defmodule WolfTest do
     assert new_wolf == %Wolf{alive: false, days_since_last_rabbits: 51}
   end
 
+  test "prefers moving towards nearby rabbits" do
+    local_board = [
+      [[{1, :rabbit}, {1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], []],
+      [[{1, :rabbit}], [], [], [], [], [], [{1, :rabbit}]],
+    ]
+
+    wolf = %Wolf{local_board: local_board, current_coordinates: %{x: 3, y: 3}}
+
+    expected_result = [[%{score: 4, x: 2, y: 2}, %{score: 0, x: 2, y: 3}, %{score: 0, x: 2, y: 4}],
+                       [%{score: 3, x: 3, y: 2}, %{score: 0, x: 3, y: 3}, %{score: 0, x: 3, y: 4}],
+                       [%{score: 3, x: 4, y: 2}, %{score: 0, x: 4, y: 3}, %{score: 1, x: 4, y: 4}]]
+
+   assert expected_result == Wolf.scored_possible_next_coordinates(wolf)
+  end
+
 end

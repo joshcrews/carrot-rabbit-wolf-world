@@ -51,6 +51,12 @@ defmodule Wolf do
     CarrotWorldServer.remove_animal({self, :wolf}, state.current_coordinates)
     :ok
   end
+
+  def terminate(reason, state) do
+    IO.inspect reason
+    IO.inspect state
+    :ok
+  end
   
   # =============== Private functions
 
@@ -123,10 +129,85 @@ defmodule Wolf do
     |> Map.delete(:score)
   end
 
-  def scored_possible_next_coordinates(state = %{board_size: board_size}) do
+  def scored_possible_next_coordinates(state = %{board_size: board_size, local_board: local_board}) do
     all_theoritical_neighboring_coordinates(state)
     |> add_score
     |> decrease_score_for_off_the_board(board_size)
+    |> increase_score_for_rabbits_nearby(local_board)
+  end
+
+  def increase_score_for_rabbits_nearby(coordinates_grid, local_board) do
+    Enum.with_index(coordinates_grid)
+    |>  Enum.map(fn({row, row_index}) ->
+          Enum.with_index(row) |> Enum.map(fn({coordinates_map, column_index}) ->
+
+            rabbits_nearby_count = rabbits_nearby_count(local_board, row_index, column_index)
+
+            %{coordinates_map | score: coordinates_map.score + rabbits_nearby_count}
+          end)
+        end)
+  end
+
+  def rabbits_nearby_count(local_board, grid_row_index, grid_column_index) do
+    # [0,0] = [1,1]
+    # [1,1] = [3,3]
+    # [2,2] = [5,5]
+
+    row_index = 1 + (grid_row_index * 2)
+    column_index = 1 + (grid_column_index * 2)
+
+    micro_local_board(local_board, row_index, column_index)
+    |> List.flatten
+    |> Enum.filter(fn(x) -> x != nil end)
+    |> Enum.count(fn({_, status}) -> (status == :rabbit) end)
+  end
+
+  defp micro_local_board(local_board, row_index, column_index) do
+    local_board_width = List.first(local_board) |> length
+    local_board_height = length(local_board)
+
+    nine_squares(row_index, column_index)
+    |> Enum.map(fn(row) -> 
+        Enum.filter(row, fn({r,c}) -> 
+          ( r >= 0 && c >= 0 && r < local_board_height && c < local_board_width) 
+        end) 
+      end)
+    |> List.flatten
+    |> Enum.map(fn({r,c}) -> 
+        Enum.at(local_board, r) |> Enum.at(c) 
+      end)
+  end
+
+  defp nine_squares(row_index, column_index) do
+    [
+      [
+        {row_index - 1, column_index - 1},
+        {row_index - 1, column_index},
+        {row_index - 1, column_index + 1}
+      ],
+      [
+        {row_index, column_index - 1},
+        {row_index, column_index},
+        {row_index, column_index + 1}
+      ],
+      [
+        {row_index + 1, column_index - 1},
+        {row_index + 1, column_index},
+        {row_index + 1, column_index + 1}
+      ]
+    ]
+  end
+
+  def empty_local_board do
+    [
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+      [[], [], [], [], [], [], []],
+    ]
   end
 
 end

@@ -19,7 +19,7 @@ defmodule CarrotWorldServerTest do
 
   test "processes don't bomb out" do
     CarrotWorldServer.sip
-    :timer.sleep(1000)
+    :timer.sleep(2000)
   end 
 
 
