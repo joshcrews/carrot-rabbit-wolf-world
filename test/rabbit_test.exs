@@ -38,18 +38,22 @@ defmodule RabbitTest do
 
   test "prefers moving towards carrots" do
     local_board = [
-      [[{1, :carrots}], [{1, :no_carrots}], [{1, :carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
-      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :carrots}]]
+      [[{1,    :carrots}], [{1, :no_carrots}], [{1,    :carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
+      [[{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}], [{1, :no_carrots}]],
     ]
 
-    rabbit = %Rabbit{local_board: local_board, current_coordinates: %{x: 1, y: 1}}
+    rabbit = %Rabbit{local_board: local_board, current_coordinates: %{x: 1, y: 1}, what_i_eat: :carrots}
 
-    expected_result = [[%{score: 10, x: 0, y: 0}, %{score: 0, x: 0, y: 1}, %{score: 10, x: 0, y: 2}],
+    expected_result = [[%{score: 2, x: 0, y: 0}, %{score: 1, x: 0, y: 1}, %{score: 0, x: 0, y: 2}],
                        [%{score: 0, x: 1, y: 0}, %{score: 0, x: 1, y: 1}, %{score: 0, x: 1, y: 2}],
-                       [%{score: 0, x: 2, y: 0}, %{score: 0, x: 2, y: 1}, %{score: 10, x: 2, y: 2}]]
+                       [%{score: 0, x: 2, y: 0}, %{score: 0, x: 2, y: 1}, %{score: 0, x: 2, y: 2}]]
 
-   assert Rabbit.scored_possible_next_coordinates(rabbit) == expected_result
+   assert expected_result ==  Animal.scored_possible_next_coordinates(rabbit)
   end
 
 end

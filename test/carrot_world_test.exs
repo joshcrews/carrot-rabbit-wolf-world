@@ -113,21 +113,7 @@ defmodule CarrotWorldTest do
     assert carrot_count == 3
   end
 
-  test "build_local_board_for rabbit" do
-    %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 5})
-
-    coordinates = %{x: 1, y: 1}
-    local_board = CarrotWorld.build_local_board_for(:rabbit, %{coordinates: coordinates, board: board})
-
-    assert length(local_board) == 3
-
-    coordinates = %{x: 0, y: 0}
-    local_board = CarrotWorld.build_local_board_for(:rabbit, %{coordinates: coordinates, board: board})
-
-    assert length(local_board) == 3
-  end
-
-  test "build_local_board_for wolf" do
+  test "build_local_board_for animal" do
     %CarrotWorld{board: board} = CarrotWorld.build_initial_world(%{board_size: 5})
 
     coordinates = %{x: 1, y: 1}

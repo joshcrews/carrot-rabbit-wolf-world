@@ -107,14 +107,7 @@ defmodule CarrotWorld do
     end)
   end
 
-  def build_local_board_for(:rabbit, %{coordinates: %{x: x, y: y}, board: board}) do
-    xs = [x - 1, x, x + 1] |> only_positives
-    ys = [y - 1, y, y + 1] |> only_positives
-
-    build_local_board(%{xs: xs, ys: ys, board: board})
-  end
-
-  def build_local_board_for(:wolf, %{coordinates: %{x: x, y: y}, board: board}) do
+  def build_local_board_for(_, %{coordinates: %{x: x, y: y}, board: board}) do
     xs = [x - 2, x - 1, x, x + 1, x + 2] |> only_positives
     ys = [y - 2, y - 1, y, y + 1, y + 2] |> only_positives
 
