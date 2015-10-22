@@ -13,6 +13,10 @@ I don't know if this is part of the story, but I also have
 1. Rabbits move towards carrots nearby
 2. Wolves move towards rabbits nearby
 
+## What it looks like
+
+![Carrot World](http://joshcrews-com.s3.amazonaws.com/demo.gif)
+
 ## How to run
 
 1. Clone the repo
