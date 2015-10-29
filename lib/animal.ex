@@ -1,6 +1,6 @@
 defmodule Animal do
 
-  @local_board_size 7
+  @local_board_size 9
 
   def move_patches(state) do
     next_coordinates = next_coordinates(state)
@@ -103,11 +103,11 @@ defmodule Animal do
 
   def food_count_nearby(local_board, grid_row_index, grid_column_index, what_i_eat) do
     # [0,0] = [1,1]
-    # [1,1] = [3,3]
-    # [2,2] = [5,5]
+    # [1,1] = [4,4]
+    # [2,2] = [7,7]
 
-    row_index = 1 + (grid_row_index * 2)
-    column_index = 1 + (grid_column_index * 2)
+    row_index = 1 + (grid_row_index * 3)
+    column_index = 1 + (grid_column_index * 3)
 
     micro_local_board(local_board, row_index, column_index)
     |> List.flatten

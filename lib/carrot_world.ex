@@ -4,8 +4,11 @@ defmodule CarrotWorld do
   defstruct [:board, :board_size]
 
   @carrot_graphic "."
+  # @rabbit_graphic "\u2661"
   @rabbit_graphic "+"
   @wolf_graphic "W"
+
+  @local_board_size 9
 
   def build_initial_world(%{board_size: board_size}) do
     carrot_patches = spawn_carrot_patches(%{board_size: board_size})
@@ -108,8 +111,12 @@ defmodule CarrotWorld do
   end
 
   def build_local_board_for(_, %{coordinates: %{x: x, y: y}, board: board}) do
-    xs = [x - 3, x - 2, x - 1, x, x + 1, x + 2, x + 3] |> only_positives
-    ys = [y - 3, y - 2, y - 1, y, y + 1, y + 2, y + 3] |> only_positives
+    range_middle = div(@local_board_size, 2) + 1
+
+    range = Enum.map(1..@local_board_size, fn(n) -> n - range_middle end)
+
+    xs = Enum.map(range, fn(n) -> x + n end) |> only_positives
+    ys = Enum.map(range, fn(n) -> y + n end) |> only_positives
 
     build_local_board(%{xs: xs, ys: ys, board: board})
   end

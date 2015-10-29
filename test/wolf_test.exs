@@ -38,20 +38,22 @@ defmodule WolfTest do
 
   test "prefers moving towards nearby rabbits" do
     local_board = [
-      [[:rabbit, :rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], []],
-      [[:rabbit], [], [], [], [], [], [:rabbit]],
+      [[:rabbit, :rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [], [], []],
+      [[:rabbit], [], [], [], [], [], [:rabbit], [], []],
+      [[:rabbit], [], [], [], [], [], [:rabbit], [], []],
+      [[:rabbit], [], [], [], [], [], [:rabbit], [], []],
     ]
 
     wolf = %Wolf{local_board: local_board, current_coordinates: %{x: 3, y: 3}, what_i_eat: :rabbit}
 
     expected_result = [[%{name: 'NW', score: 4, x: 2, y: 2}, %{name: 'W', score: 3, x: 2, y: 3}, %{name: 'SW', score: 3, x: 2, y: 4}],
-                       [%{name: 'N', score: 0, x: 3, y: 2}, %{name: 'C', score: 0, x: 3, y: 3}, %{name: 'S', score: 0, x: 3, y: 4}],
-                       [%{name: 'NE', score: 0, x: 4, y: 2}, %{name: 'E', score: 0, x: 4, y: 3}, %{name: 'SE', score: 1, x: 4, y: 4}]]
+                        [%{name: 'N', score: 0, x: 3, y: 2}, %{name: 'C', score: 0, x: 3, y: 3}, %{name: 'S', score: 0, x: 3, y: 4}],
+                        [%{name: 'NE', score: 0, x: 4, y: 2}, %{name: 'E', score: 0, x: 4, y: 3}, %{name: 'SE', score: 3, x: 4, y: 4}]]
 
    assert expected_result == Animal.scored_possible_next_coordinates(wolf)
   end
