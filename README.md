@@ -49,3 +49,7 @@ carrot_patch.ex
 
 Look for `start_in_production`
 and you can set the board_size
+
+## License
+
+This software is released under the [MIT Licence](http://www.opensource.org/licenses/MIT)
