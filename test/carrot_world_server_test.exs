@@ -17,10 +17,10 @@ defmodule CarrotWorldServerTest do
     assert CarrotWorldServer.meterize(20) == "||"
   end
 
-  test "processes don't bomb out" do
-    CarrotWorldServer.sip
-    :timer.sleep(2000)
-  end 
+  # test "processes don't bomb out" do
+  #   CarrotWorldServer.sip
+  #   :timer.sleep(2000)
+  # end 
 
 
 end

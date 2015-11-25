@@ -2,11 +2,11 @@ defmodule Rabbit do
   import Animal
   use GenServer
 
-  defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive, :local_board, :what_i_eat, :what_i_am]
+  defstruct [:current_coordinates, :board_size, :carrots_in_belly, :days_since_last_carrots, :alive, :local_board, :what_i_eat, :what_i_am, :what_i_flee]
 
-  @move_tick_interval 500
-  @carrots_in_belly_before_reproduce 1
-  @day_can_live_without_carrots 10
+  @move_tick_interval 300
+  @carrots_in_belly_before_reproduce 3
+  @day_can_live_without_carrots 15
 
   # Dies after 10 rounds with no carrots
 
@@ -28,7 +28,7 @@ defmodule Rabbit do
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
     local_board = empty_local_board
-    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0, days_since_last_carrots: 0, alive: true, local_board: local_board, what_i_eat: :carrots, what_i_am: :rabbit}}
+    {:ok, %Rabbit{current_coordinates: coordinates, board_size: board_size, carrots_in_belly: 0, days_since_last_carrots: 0, alive: true, local_board: local_board, what_i_eat: :carrots, what_i_am: :rabbit, what_i_flee: :wolf}}
   end
 
   def handle_info(:move_tick, state) do

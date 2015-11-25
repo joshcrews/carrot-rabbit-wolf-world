@@ -3,11 +3,11 @@ defmodule Wolf do
 
   use GenServer
 
-  defstruct [:current_coordinates, :board_size, :rabbits_in_belly, :days_since_last_rabbits, :alive, :local_board, :what_i_eat, :what_i_am]
+  defstruct [:current_coordinates, :board_size, :rabbits_in_belly, :days_since_last_rabbits, :alive, :local_board, :what_i_eat, :what_i_am, :what_i_flee]
 
   @move_tick_interval 500
-  @rabbits_in_belly_before_reproduce 5
-  @day_can_live_without_rabbits 50
+  @rabbits_in_belly_before_reproduce 3
+  @day_can_live_without_rabbits 60
 
   def start(state) do
     {:ok, pid} = GenServer.start_link(Wolf, state)
@@ -23,7 +23,7 @@ defmodule Wolf do
 
   def init(%{current_coordinates: coordinates, board_size: board_size}) do
     local_board = empty_local_board
-    {:ok, %Wolf{current_coordinates: coordinates, board_size: board_size, rabbits_in_belly: 0, days_since_last_rabbits: 0, alive: true, local_board: local_board, what_i_eat: :rabbit, what_i_am: :wolf}}
+    {:ok, %Wolf{current_coordinates: coordinates, board_size: board_size, rabbits_in_belly: 0, days_since_last_rabbits: 0, alive: true, local_board: local_board, what_i_eat: :rabbit, what_i_am: :wolf, what_i_flee: :dentists}}
   end
 
   def handle_info(:move_tick, state) do

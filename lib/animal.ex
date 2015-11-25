@@ -1,6 +1,8 @@
 defmodule Animal do
 
   @local_board_size 9
+  @off_board_score 1000
+  @flee_enemy_score 10
 
   def move_patches(state) do
     next_coordinates = next_coordinates(state)
@@ -26,11 +28,11 @@ defmodule Animal do
     |> Map.delete(:score)
   end
 
-  def scored_possible_next_coordinates(state = %{board_size: board_size, local_board: local_board, what_i_eat: what_i_eat}) do
+  def scored_possible_next_coordinates(state = %{board_size: board_size, local_board: local_board, what_i_eat: what_i_eat, what_i_flee: what_i_flee}) do
     all_theoritical_neighboring_coordinates(state)
     |> add_score
     |> decrease_score_for_off_the_board(board_size)
-    |> increase_score_for_food_nearby(local_board, what_i_eat)
+    |> increase_score_for_food_nearby(local_board, what_i_eat, what_i_flee)
   end
 
   def add_score(coordinates_grid) do
@@ -55,7 +57,7 @@ defmodule Animal do
             coordinates_map
           :else ->
             score = coordinates_map.score
-            %{coordinates_map | score: score - 100}
+            %{coordinates_map | score: score - @off_board_score}
         end
             
       end)
@@ -64,6 +66,7 @@ defmodule Animal do
   end
 
   def all_theoritical_neighboring_coordinates(%{current_coordinates: %{x: x, y: y}}) do
+
     [
       [
         %{x: x - 1, y: y - 1, name: 'NW'},
@@ -89,14 +92,17 @@ defmodule Animal do
   def on_board(%{x: _, y: y}, board_size) when y >= board_size, do: false
   def on_board(%{x: _, y: _}, board_size), do: true
 
-  def increase_score_for_food_nearby(coordinates_grid, local_board, what_i_eat) do
+  def increase_score_for_food_nearby(coordinates_grid, local_board, what_i_eat, what_i_flee) do
     Enum.with_index(coordinates_grid)
     |>  Enum.map(fn({row, row_index}) ->
           Enum.with_index(row) |> Enum.map(fn({coordinates_map, column_index}) ->
 
             food_count_nearby = food_count_nearby(local_board, row_index, column_index, what_i_eat)
+            enemy_count_nearby = food_count_nearby(local_board, row_index, column_index, what_i_flee)
 
-            %{coordinates_map | score: coordinates_map.score + food_count_nearby}
+            new_score = coordinates_map.score + food_count_nearby - (enemy_count_nearby * @flee_enemy_score)
+
+            %{coordinates_map | score: new_score}
           end)
         end)
   end
