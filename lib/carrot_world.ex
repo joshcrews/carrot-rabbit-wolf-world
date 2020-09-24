@@ -21,15 +21,15 @@ defmodule CarrotWorld do
 
   def board_to_graphics(board) do
     board
-    |> Enum.map(fn(row) -> 
-        Enum.map(row, fn(occupants) -> 
-          graphic_for_occupants(occupants) 
-      end) 
+    |> Enum.map(fn(row) ->
+        Enum.map(row, fn(occupants) ->
+          graphic_for_occupants(occupants)
+      end)
     end)
   end
 
   def get_patch_at(board, coordinates) do
-    occupants_at(board, coordinates) 
+    occupants_at(board, coordinates)
     |> Enum.filter(fn({_, status}) -> (status == :carrots || status == :no_carrots) end)
     |> List.first
     |> elem(0)
@@ -39,31 +39,27 @@ defmodule CarrotWorld do
     occupants = occupants_at(board, coordinates)
 
     rabbits = Enum.filter(occupants, fn({_, animal_name}) -> animal_name == :rabbit end)
-   
+
     cond do
       length(rabbits) > 0 ->
         rabbit_tuple = List.first(rabbits)
         {rabbit, _} = rabbit_tuple
-        
+
         Rabbit.eaten_by_wolf(rabbit)
         new_occupants = List.delete(occupants, rabbit_tuple)
-        
-        got_some_rabbits = true
+
         board = replace_occupants(board, new_occupants, coordinates)
+        {{:ok, true}, board}
 
       :else ->
-        got_some_rabbits = false
-        board = board
+        {{:ok, false}, board}
     end
-
-    reply = {:ok, got_some_rabbits}
-    {reply, board}
   end
 
   def replace_at(board, coordinates, new_status) do
     occupants = occupants_at(board, coordinates)
 
-    new_occupants = Enum.map(occupants, fn({pid, status}) -> 
+    new_occupants = Enum.map(occupants, fn({pid, status}) ->
       cond do
         status == new_status -> {pid, status}
         :else ->
@@ -76,7 +72,7 @@ defmodule CarrotWorld do
     end)
 
     replace_occupants(board, new_occupants, coordinates)
-  end 
+  end
 
   def move_animal(board, animal, coordinates) do
     occupants = occupants_at(board, coordinates)
@@ -103,8 +99,8 @@ defmodule CarrotWorld do
   end
 
   def status_map(board) do
-    Enum.map(board, fn(row) -> 
-      Enum.map(row, fn(occupants) -> 
+    Enum.map(board, fn(row) ->
+      Enum.map(row, fn(occupants) ->
         Enum.map(occupants, fn({_, status}) -> status end)
       end)
     end)
@@ -122,7 +118,7 @@ defmodule CarrotWorld do
   end
 
   defp build_local_board(%{xs: xs, ys: ys, board: board}) do
-    Enum.map(ys, fn(y) -> 
+    Enum.map(ys, fn(y) ->
       Enum.map(xs, fn(x) ->
         occupants = Enum.at(board, y, []) |> Enum.at(x, :none)
         cond do
@@ -153,8 +149,8 @@ defmodule CarrotWorld do
   defp replace_occupants(board, new_occupants, %{x: x, y: y}) do
     row = Enum.at(board, y)
     new_row = List.replace_at(row, x, new_occupants)
-    List.replace_at(board, y, new_row) 
-  end 
+    List.replace_at(board, y, new_row)
+  end
 
   defp occupants_at(board, %{x: x, y: y}) do
     Enum.at(board, y) |> Enum.at(x)
@@ -173,13 +169,13 @@ defmodule CarrotWorld do
   def spawn_carrot_patches(%{board_size: board_size}) do
     board_size_less_one = board_size - 1
     Enum.to_list(0..board_size_less_one)
-    |> Enum.map(fn(y) -> 
-      Enum.to_list(0..board_size_less_one) |> Enum.map(fn(x) -> 
-        {:ok, carrot_patch} = CarrotPatch.start(%{x: x, y: y, board_size: board_size}) 
+    |> Enum.map(fn(y) ->
+      Enum.to_list(0..board_size_less_one) |> Enum.map(fn(x) ->
+        {:ok, carrot_patch} = CarrotPatch.start(%{x: x, y: y, board_size: board_size})
         {carrot_patch, :no_carrots}
       end)
     end)
   end
-  
-  
+
+
 end
